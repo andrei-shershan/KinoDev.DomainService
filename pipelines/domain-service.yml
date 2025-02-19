@@ -1,0 +1,62 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  buildConfiguration: 'Release'
+# TODO: Move Build and Tests to separate ymll files
+stages:
+  - stage: Build_and_Test
+    displayName: 'Build_and_Tests'
+    jobs:
+      - job: Build_and_Test_Job
+        displayName: 'Build and run Unit Tests'
+        steps:
+        - task: UseDotNet@2
+          displayName: 'Install .NET SDK'
+          inputs:
+            packageType: 'sdk'
+            version: '8.x'
+
+        - task: NuGetToolInstaller@1
+          displayName: 'Install NuGet'
+
+        - task: NuGetCommand@2
+          displayName: 'Restore NuGet Packages'
+          inputs:
+            command: 'restore'
+            restoreSolution: '**/*.sln'
+
+        - task: VSBuild@1
+          displayName: 'Build Solution'
+          inputs:
+            solution: '**/*.sln'
+            platform: 'Any CPU'
+            configuration: '$(buildConfiguration)'
+
+        - task: VSTest@3
+          displayName: 'Run Unit Tests'
+          inputs:           
+            testSelector: 'testAssemblies'
+            testAssemblyVer2: |
+              **\*UnitTests*.dll
+              !**\*TestAdapter.dll
+              !**\obj\**            
+            codeCoverageEnabled: true
+            searchFolder: '$(System.DefaultWorkingDirectory)'
+
+        - task: PublishTestResults@2
+          displayName: 'Publish Test Results'
+          inputs:
+            testResultsFiles: '**/TestResults/*.trx'
+            testRunTitle: 'VSTest Results'
+
+        - task: PublishBuildArtifacts@1
+          displayName: 'Publish Build Artifacts'
+          inputs:
+            pathToPublish: '$(Build.ArtifactStagingDirectory)'
+            artifactName: 'drop'
