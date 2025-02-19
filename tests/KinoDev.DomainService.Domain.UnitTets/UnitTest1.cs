@@ -1,4 +1,4 @@
-namespace KinoDev.DomainService.Domain.UnitTets
+namespace KinoDev.DomainService.Domain.UnitTests
 {
     public class UnitTest1
     {

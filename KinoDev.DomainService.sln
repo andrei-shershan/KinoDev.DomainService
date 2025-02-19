@@ -3,23 +3,23 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KinoDev.DomainService.WebApi", "src\KinoDev.DomainService.WebApi\KinoDev.DomainService.WebApi.csproj", "{3621C93E-0276-454F-AB2F-B5BE3EBC8210}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KinoDev.DomainService.WebApi", "src\KinoDev.DomainService.WebApi\KinoDev.DomainService.WebApi.csproj", "{3621C93E-0276-454F-AB2F-B5BE3EBC8210}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{BAFC3F7F-5C3C-41E2-99C3-9EE6F85A86E0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{9DD3CCF6-F7C0-41AE-90EF-C0884F93A986}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KinoDev.DomainService.Domain", "src\KinoDev.DomainService.Domain\KinoDev.DomainService.Domain.csproj", "{931F581F-BA18-42E9-95F3-0E80368FB3D3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KinoDev.DomainService.Domain", "src\KinoDev.DomainService.Domain\KinoDev.DomainService.Domain.csproj", "{931F581F-BA18-42E9-95F3-0E80368FB3D3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pipelines", "pipelines", "{F6ABDF48-6D2E-44E1-88DB-9D6AC9348885}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KinoDev.DomainService.Domain.UnitTets", "tests\KinoDev.DomainService.Domain.UnitTets\KinoDev.DomainService.Domain.UnitTets.csproj", "{703C6AD9-14F0-4EB2-A774-5D7F81BFA79B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KinoDev.DomainService.Domain.UnitTests", "tests\KinoDev.DomainService.Domain.UnitTets\KinoDev.DomainService.Domain.UnitTests.csproj", "{703C6AD9-14F0-4EB2-A774-5D7F81BFA79B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KinoDev.DomainService.WebApi.UnitTests", "tests\KinoDev.DomainService.WebApi.UnitTests\KinoDev.DomainService.WebApi.UnitTests.csproj", "{FF5CF197-9FEF-41C6-BEB2-76F4171B34FC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KinoDev.DomainService.WebApi.UnitTests", "tests\KinoDev.DomainService.WebApi.UnitTests\KinoDev.DomainService.WebApi.UnitTests.csproj", "{FF5CF197-9FEF-41C6-BEB2-76F4171B34FC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KinoDev.DomainService.Infrastructure", "src\KinoDev.DomainService.Infrastructure\KinoDev.DomainService.Infrastructure.csproj", "{59EB64D0-84E6-490E-B9A3-36B069F72DE4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KinoDev.DomainService.Infrastructure", "src\KinoDev.DomainService.Infrastructure\KinoDev.DomainService.Infrastructure.csproj", "{59EB64D0-84E6-490E-B9A3-36B069F72DE4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KinoDev.DomainService.Infrastructure.UnitTests", "tests\KinoDev.DomainService.Infrastructure.UnitTests\KinoDev.DomainService.Infrastructure.UnitTests.csproj", "{BF9822BE-7DD1-4550-A256-07D4A70CE214}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KinoDev.DomainService.Infrastructure.UnitTests", "tests\KinoDev.DomainService.Infrastructure.UnitTests\KinoDev.DomainService.Infrastructure.UnitTests.csproj", "{BF9822BE-7DD1-4550-A256-07D4A70CE214}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
