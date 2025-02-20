@@ -9,7 +9,7 @@ COPY ["KinoDev.DomainService.sln", "./"]
 COPY ["src/KinoDev.DomainService.WebApi/KinoDev.DomainService.WebApi.csproj", "src/KinoDev.DomainService.WebApi/"]
 COPY ["src/KinoDev.DomainService.Infrastructure/KinoDev.DomainService.Infrastructure.csproj", "src/KinoDev.DomainService.Infrastructure/"]
 COPY ["src/KinoDev.DomainService.Domain/KinoDev.DomainService.Domain.csproj", "src/KinoDev.DomainService.Domain/"]
-COPY ["tests/KinoDev.DomainService.Domain.UnitTets/KinoDev.DomainService.Domain.UnitTets.csproj", "tests/KinoDev.DomainService.Domain.UnitTets/"]
+COPY ["tests/KinoDev.DomainService.Domain.UnitTests/KinoDev.DomainService.Domain.UnitTests.csproj", "tests/KinoDev.DomainService.Domain.UnitTests/"]
 COPY ["tests/KinoDev.DomainService.Infrastructure.UnitTests/KinoDev.DomainService.Infrastructure.UnitTests.csproj", "tests/KinoDev.DomainService.Infrastructure.UnitTests/"]
 COPY ["tests/KinoDev.DomainService.WebApi.UnitTests/KinoDev.DomainService.WebApi.UnitTests.csproj", "tests/KinoDev.DomainService.WebApi.UnitTests/"]
 RUN dotnet restore "src/KinoDev.DomainService.WebApi/KinoDev.DomainService.WebApi.csproj"

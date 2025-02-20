@@ -1,4 +1,6 @@
 
+using KinoDev.DomainService.Domain.Extensions;
+
 namespace KinoDev.DomainService.WebApi
 {
     public class Program
@@ -8,11 +10,24 @@ namespace KinoDev.DomainService.WebApi
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.Configuration
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                //.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+                .AddEnvironmentVariables();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            // TODO: move to settings
+            var connectionString = builder.Configuration.GetConnectionString("LocalDb");
+            var migrationAssembly = "KinoDev.DomainService.WebApi";
+
+            Console.WriteLine($"Connection string in domain: {connectionString}");
+
+            builder.Services.InitializeDomain(connectionString, migrationAssembly);
 
             // CORS
             builder.Services.AddCors(options =>

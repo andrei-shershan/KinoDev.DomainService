@@ -1,8 +1,66 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using KinoDev.DomainService.Domain.Constants;
+using KinoDev.DomainService.Domain.DomainsModels;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace KinoDev.DomainService.Domain.Context
 {
     public class KinoDevDbContext : DbContext
     {
+        public DbSet<Hall> Halls { get; set; }
+
+        public DbSet<Movie> Movies { get; set; }
+
+        public DbSet<Order> Orders { get; set; }
+
+        public DbSet<Seat> Seats { get; set; }
+
+        public DbSet<ShowTime> ShowTimes { get; set; }
+
+        public DbSet<Ticket> Tickets { get; set; }
+
+        public KinoDevDbContext(DbContextOptions<KinoDevDbContext> options) : base(options)
+        {
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            OverrideDefaultTypes(modelBuilder);
+
+            OnModelCreating(modelBuilder.Entity<Hall>());
+            OnModelCreating(modelBuilder.Entity<Movie>());
+
+            base.OnModelCreating(modelBuilder);
+        }
+
+        private void OnModelCreating(EntityTypeBuilder<Hall> builder)
+        {
+            builder.Property(x => x.Name).HasMaxLength(MySqlConstants.SHORT_NAME_MAX_LENGTH);
+        }
+
+        private void OnModelCreating(EntityTypeBuilder<Movie> builder)
+        {
+            builder.Property(x => x.Name).HasMaxLength(MySqlConstants.SHORT_NAME_MAX_LENGTH);
+            builder.Property(x => x.Description).HasMaxLength(MySqlConstants.DESCRIPTION_MAX_LENGTH);
+        }
+
+        private void OverrideDefaultTypes(ModelBuilder modelBuilder)
+        {
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                foreach (var property in entityType.GetProperties())
+                {
+                    if (property.ClrType == typeof(DateTime) || property.ClrType == typeof(Nullable<DateTime>))
+                    {
+                        property.SetColumnType(MySqlConstants.DATETIME_0_DEF);
+                    }
+
+                    if (property.ClrType == typeof(decimal))
+                    {
+                        property.SetColumnType(MySqlConstants.DECIMAL_182_DEF);
+                    }
+                }
+            }
+        }
     }
 }

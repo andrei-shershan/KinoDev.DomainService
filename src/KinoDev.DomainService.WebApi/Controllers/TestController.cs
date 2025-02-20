@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using KinoDev.DomainService.Domain.Context;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace KinoDev.DomainService.WebApi.Controllers
 {
@@ -7,10 +10,19 @@ namespace KinoDev.DomainService.WebApi.Controllers
     [ApiController]
     public class TestController : ControllerBase
     {
-        [HttpGet("hello")]
-        public IActionResult Hello()
+        private readonly KinoDevDbContext _context;
+
+        public TestController(KinoDevDbContext context)
         {
-            return Ok("Hello From Domain Service");
+            _context = context;
+        }
+
+        [HttpGet("hello")]
+        public async Task<IActionResult> Hello()
+        {
+            var halls = await _context.Halls.ToListAsync();
+
+            return Ok($"Domain service response from DB: {JsonConvert.SerializeObject(halls)}");
         }
     }
 }
