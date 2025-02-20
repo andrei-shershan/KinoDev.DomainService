@@ -7,7 +7,7 @@ namespace KinoDev.DomainService.Domain.Extensions
 {
     public static class DomainExtentions
     {
-        public static IServiceCollection Initialize(
+        public static IServiceCollection InitializeDomain(
             this IServiceCollection services,
             string connectionString,
             string migrationAssembly
