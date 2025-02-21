@@ -25,6 +25,9 @@ stages:
         - task: NuGetToolInstaller@1
           displayName: 'Install NuGet'
 
+        - task: NuGetAuthenticate@0
+          displayName: 'Authenticate to NuGet feed'
+
         - task: NuGetCommand@2
           displayName: 'Restore NuGet Packages'
           inputs:
