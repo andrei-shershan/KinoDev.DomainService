@@ -1,4 +1,4 @@
-﻿using KinoDev.DomainService.Domain.Enums;
+﻿using KinoDev.Shared.Enums;
 
 namespace KinoDev.DomainService.Domain.DomainsModels
 {
