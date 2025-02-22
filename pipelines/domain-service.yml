@@ -25,14 +25,12 @@ stages:
         - task: NuGetToolInstaller@1
           displayName: 'Install NuGet'
 
-        - task: NuGetAuthenticate@0
-          displayName: 'Authenticate to NuGet feed'
-
         - task: NuGetCommand@2
           displayName: 'Restore NuGet Packages'
           inputs:
             command: 'restore'
             restoreSolution: '**/*.sln'
+            nugetConfigPath: 'nuget.azure.config'
 
         - task: VSBuild@1
           displayName: 'Build Solution'
