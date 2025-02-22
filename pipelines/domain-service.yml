@@ -39,12 +39,18 @@ stages:
               Set-Content -Path configs/nuget.azure.config
           displayName: 'Replace tokens in nuget.azure.config'
 
+        - powershell: |
+            Write-Host "File path: $(Build.SourcesDirectory)\configs\nuget.azure.config"
+            Write-Host "File content:"
+            Get-Content "$(Build.SourcesDirectory)\configs\nuget.azure.config"
+          displayName: "Show nuget.azure.config file content"
+
         - task: NuGetCommand@2
           displayName: 'Restore NuGet Packages'
           inputs:
             command: 'restore'
             restoreSolution: '**/*.sln'
-            nugetConfigPath: '**/configs/nuget.azure.config'
+            nugetConfigPath: '$(Build.SourcesDirectory)/configs/nuget.azure.config'
 
         - task: VSBuild@1
           displayName: 'Build Solution'
