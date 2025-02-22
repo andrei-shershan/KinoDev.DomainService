@@ -41,16 +41,25 @@ stages:
             script: |
               Write-Host "GITHUB_USER_NAME: $env:MY_GITHUB_TOKEN"
           displayName: 'Print GitHub User Name'
-          
-        - powershell: |
-            Write-Host "GITHUB_READ_PACKAGE_TOKEN: $(MY_GITHUB_TOKEN)"
-          displayName: 'Print GitHub Read Package Token'
 
-        - powershell: |
-            (Get-Content -Path configs/nuget.azure.config) -replace '\$env:GITHUB_USER_NAME', $env:GITHUB_USER_NAME `
-              -replace '\$env:GITHUB_READ_PACKAGE_TOKEN', $env:GITHUB_READ_PACKAGE_TOKEN | `
-              Set-Content -Path configs/nuget.azure.config
+        - task: PowerShell@2
           displayName: 'Replace tokens in nuget.azure.config'
+          env:
+            GITHUB_USER_NAME: $(GITHUB_USER_NAME)
+            GITHUB_READ_PACKAGE_TOKEN: $(GITHUB_READ_PACKAGE_TOKEN)
+          inputs:
+            targetType: 'inline'
+            script: |
+              (Get-Content -Path configs/nuget.azure.config) `
+                -replace '\$env:GITHUB_USER_NAME', $env:GITHUB_USER_NAME `
+                -replace '\$env:GITHUB_READ_PACKAGE_TOKEN', $env:GITHUB_READ_PACKAGE_TOKEN | `
+                Set-Content -Path configs/nuget.azure.config
+
+        # - powershell: |
+        #     (Get-Content -Path configs/nuget.azure.config) -replace '\$env:GITHUB_USER_NAME', $env:GITHUB_USER_NAME `
+        #       -replace '\$env:GITHUB_READ_PACKAGE_TOKEN', $env:GITHUB_READ_PACKAGE_TOKEN | `
+        #       Set-Content -Path configs/nuget.azure.config
+        #   displayName: 'Replace tokens in nuget.azure.config'
 
         - powershell: |
             Write-Host "File path: $(Build.SourcesDirectory)\configs\nuget.azure.config"
