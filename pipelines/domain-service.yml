@@ -25,8 +25,11 @@ stages:
         - task: NuGetToolInstaller@1
           displayName: 'Install NuGet'
 
-        - task: NuGetAuthenticate@0
-          displayName: 'Authenticate to NuGet feed'
+        - script: |
+            echo Listing environment variables:
+            set
+          displayName: "Print Environment Variables (CMD)"
+          shell: cmd
 
         - task: NuGetCommand@2
           displayName: 'Restore NuGet Packages'
