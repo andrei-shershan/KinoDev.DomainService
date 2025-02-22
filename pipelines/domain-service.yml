@@ -15,8 +15,6 @@ stages:
     jobs:
       - job: Build_and_Test_Job
         displayName: 'Build and run Unit Tests'
-        env:
-          MY_GITHUB_TOKEN: $(GITHUB_READ_PACKAGE_TOKEN)
         steps:
         - task: UseDotNet@2
           displayName: 'Install .NET SDK'
@@ -34,6 +32,15 @@ stages:
 
         - powershell: Get-ChildItem -Path $(Build.SourcesDirectory) -Recurse
           displayName: 'List repository files'
+
+        - task: PowerShell@2,
+          env:
+            MY_GITHUB_TOKEN: $(GITHUB_READ_PACKAGE_TOKEN)
+          inputs:
+            targetType: 'inline'
+            script: |
+              Write-Host "GITHUB_USER_NAME: $(MY_GITHUB_USER_NAME)"
+            displayName: 'Print GitHub User Name'  
 
         - powershell: |
             Write-Host "GITHUB_READ_PACKAGE_TOKEN: $(MY_GITHUB_TOKEN)"
