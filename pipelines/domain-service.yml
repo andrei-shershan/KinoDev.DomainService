@@ -44,7 +44,7 @@ stages:
           inputs:
             command: 'restore'
             restoreSolution: '**/*.sln'
-            nugetConfigPath: 'configs/nuget.azure.config'
+            nugetConfigPath: '**/configs/nuget.azure.config'
 
         - task: VSBuild@1
           displayName: 'Build Solution'
