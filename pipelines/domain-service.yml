@@ -39,7 +39,7 @@ stages:
           inputs:
             targetType: 'inline'
             script: |
-              Write-Host "GITHUB_USER_NAME: $(MY_GITHUB_USER_NAME)"
+              Write-Host "GITHUB_USER_NAME: $(MY_GITHUB_TOKEN)"
             displayName: 'Print GitHub User Name'  
 
         - powershell: |
