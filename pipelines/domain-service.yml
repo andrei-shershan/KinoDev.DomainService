@@ -26,10 +26,9 @@ stages:
           displayName: 'Install NuGet'
 
         - script: |
-            echo Listing environment variables:
-            set
-          displayName: "Print Environment Variables (CMD)"
-          shell: cmd
+            echo "Listing environment variables:"
+            printenv
+          displayName: "Print Environment Variables (Bash)"
 
         - task: NuGetCommand@2
           displayName: 'Restore NuGet Packages'
