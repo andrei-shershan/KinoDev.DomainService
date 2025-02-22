@@ -33,7 +33,7 @@ stages:
         - powershell: Get-ChildItem -Path $(Build.SourcesDirectory) -Recurse
           displayName: 'List repository files'
 
-        - task: PowerShell@2,
+        - task: PowerShell@2
           env:
             MY_GITHUB_TOKEN: $(GITHUB_READ_PACKAGE_TOKEN)
           inputs:
