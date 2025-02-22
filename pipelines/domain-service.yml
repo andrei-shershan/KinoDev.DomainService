@@ -34,8 +34,8 @@ stages:
           displayName: 'List repository files'
 
         - powershell: |
-            (Get-Content -Path configs/nuget.azure.config) -replace '\$\((GITHUB_USER_NAME)\)', $env:GITHUB_USER_NAME `
-              -replace '\$\((GITHUB_READ_PACKAGE_TOKEN)\)', $env:GITHUB_READ_PACKAGE_TOKEN | `
+            (Get-Content -Path configs/nuget.azure.config) -replace '\$env:GITHUB_USER_NAME', $env:GITHUB_USER_NAME `
+              -replace '\$env:GITHUB_READ_PACKAGE_TOKEN', $env:GITHUB_READ_PACKAGE_TOKEN | `
               Set-Content -Path configs/nuget.azure.config
           displayName: 'Replace tokens in nuget.azure.config'
 
