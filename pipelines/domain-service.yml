@@ -30,11 +30,11 @@ stages:
             printenv
           displayName: "Print Environment Variables (Bash)"
 
-        - task: FileTransform@1
-          displayName: 'Substitute variables in nuget.azure.config'
-          inputs:
-            folderPath: '$(Build.SourcesDirectory)'
-            targetFiles: 'nuget.azure.config'
+        - powershell: |
+            (Get-Content -Path nuget.azure.config) -replace '\$\((GITHUB_USER_NAME)\)', $env:GITHUB_USER_NAME `
+              -replace '\$\((GITHUB_READ_PACKAGE_TOKEN)\)', $env:GITHUB_READ_PACKAGE_TOKEN | `
+              Set-Content -Path nuget.azure.config
+          displayName: 'Replace tokens in nuget.azure.config'
 
         - task: NuGetCommand@2
           displayName: 'Restore NuGet Packages'
