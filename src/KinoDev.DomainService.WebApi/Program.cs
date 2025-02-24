@@ -1,5 +1,7 @@
 
 using KinoDev.DomainService.Domain.Extensions;
+using KinoDev.DomainService.WebApi.ConfigurationSettings;
+using KinoDev.DomainService.WebApi.SetupExtensions;
 
 namespace KinoDev.DomainService.WebApi
 {
@@ -22,7 +24,7 @@ namespace KinoDev.DomainService.WebApi
             builder.Services.AddSwaggerGen();
 
             // TODO: move to settings
-            var connectionString = builder.Configuration.GetConnectionString("LocalDb");
+            var connectionString = builder.Configuration.GetConnectionString("Kinodev");
             var migrationAssembly = "KinoDev.DomainService.WebApi";
 
             Console.WriteLine($"Connection string in domain: {connectionString}");
@@ -41,6 +43,9 @@ namespace KinoDev.DomainService.WebApi
                 });
             });
 
+            var jwtSettings = builder.Configuration.GetSection("JWT").Get<JwtSettings>();
+            builder.Services.SetupAuthentication(jwtSettings);
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -57,7 +62,7 @@ namespace KinoDev.DomainService.WebApi
 
             app.UseCors(); // Ensure CORS middleware is used
 
-
+            app.UseAuthentication();
             app.UseAuthorization();
 
 
