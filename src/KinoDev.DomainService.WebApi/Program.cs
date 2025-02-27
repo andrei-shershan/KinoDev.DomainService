@@ -2,6 +2,7 @@
 using KinoDev.DomainService.Domain.Extensions;
 using KinoDev.DomainService.WebApi.ConfigurationSettings;
 using KinoDev.DomainService.WebApi.SetupExtensions;
+using Microsoft.IdentityModel.Protocols.Configuration;
 
 namespace KinoDev.DomainService.WebApi
 {
@@ -25,9 +26,14 @@ namespace KinoDev.DomainService.WebApi
 
             // TODO: move to settings
             var connectionString = builder.Configuration.GetConnectionString("Kinodev");
-            var migrationAssembly = "KinoDev.DomainService.WebApi";
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new InvalidConfigurationException("Unable to obtain connection string!");
+            }
 
             Console.WriteLine($"Connection string in domain: {connectionString}");
+
+            var migrationAssembly = "KinoDev.DomainService.WebApi";
 
             builder.Services.InitializeDomain(connectionString, migrationAssembly);
 
@@ -43,8 +49,13 @@ namespace KinoDev.DomainService.WebApi
                 });
             });
 
-            var jwtSettings = builder.Configuration.GetSection("JWT").Get<JwtSettings>();
-            builder.Services.SetupAuthentication(jwtSettings);
+            var authenticationSettings = builder.Configuration.GetSection("AuthenticationSettings").Get<AuthenticationSettings>();
+            if (authenticationSettings == null)
+            {
+                throw new InvalidConfigurationException("Unable to obtain AuthenticationSettings from configuration!");
+            }
+
+            builder.Services.SetupAuthentication(authenticationSettings);
 
             var app = builder.Build();
 
