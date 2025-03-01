@@ -49,7 +49,7 @@ namespace KinoDev.DomainService.WebApi
                 });
             });
 
-            var authenticationSettings = builder.Configuration.GetSection("AuthenticationSettings").Get<AuthenticationSettings>();
+            var authenticationSettings = builder.Configuration.GetSection("Authentication").Get<AuthenticationSettings>();
             if (authenticationSettings == null)
             {
                 throw new InvalidConfigurationException("Unable to obtain AuthenticationSettings from configuration!");
