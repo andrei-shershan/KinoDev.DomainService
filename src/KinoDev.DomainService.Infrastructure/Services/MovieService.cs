@@ -2,10 +2,13 @@
 using KinoDev.DomainService.Domain.DomainsModels;
 using KinoDev.DomainService.Infrastructure.Mappers;
 using KinoDev.Shared.DtoModels;
+using KinoDev.Shared.DtoModels.ShowingMovies;
 using Microsoft.EntityFrameworkCore;
 
 namespace KinoDev.DomainService.Infrastructure.Services
 {
+
+
     public interface IMovieService
     {
         Task<MovieDto> GetByIdAsync(int id);
@@ -13,6 +16,8 @@ namespace KinoDev.DomainService.Infrastructure.Services
         Task<MovieDto> CreateAsync(MovieDto movieDto);
         Task<MovieDto> UpdateAsync(int id, MovieDto movieDto);
         Task<bool> DeleteAsync(int id);
+
+        Task<IEnumerable<ShowingMovie>> GetShowingMovies(DateTime date);
     }
 
     public class MovieService : IMovieService
@@ -20,7 +25,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
         private readonly KinoDevDbContext _dbContext;
 
         public MovieService(KinoDevDbContext dbContext)
-        { 
+        {
             _dbContext = dbContext;
         }
 
@@ -40,7 +45,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
             return movies.Select(x => x.ToDto());
         }
 
-        public Task<MovieDto> GetByIdAsync(int id)
+        public async Task<MovieDto> GetByIdAsync(int id)
         {
             throw new NotImplementedException();
         }
@@ -48,6 +53,50 @@ namespace KinoDev.DomainService.Infrastructure.Services
         public IEnumerable<Movie> GetMovies()
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<IEnumerable<ShowingMovie>> GetShowingMovies(DateTime date)
+        {
+            Console.WriteLine("TEST 1");
+            var dbResults = await
+                _dbContext
+                    .Movies
+                    .Join(_dbContext.ShowTimes, m => m.Id, st => st.MovieId, (m, st) => new { m, st })
+                    .Join(_dbContext.Halls, x => x.st.HallId, h => h.Id, (x, h) => new { x.m, x.st, h })
+                    .Where(x => DateOnly.FromDateTime(x.st.Time.Date) == DateOnly.FromDateTime(date))
+                    .ToListAsync();
+
+            var now = DateTime.UtcNow;
+
+            var result = new List<ShowingMovie>();
+            foreach (var group in dbResults.GroupBy(x => x.m.Id))
+            {
+                var item = group.FirstOrDefault();
+                if (item != null)
+                {
+                    var movieShowTimeDetails = group.Select(st => new MovieShowTimeDetails
+                    {
+                        HallId = item.h.Id,
+                        HallName = item.h.Name,
+                        Time = st.st.Time,
+                        Price = st.st.Price,
+                        IsSellingAvailable = st.st.Time > now
+                    }).OrderBy(st => st.Time);
+
+                    result.Add(new ShowingMovie
+                    {
+                        Id = item.m.Id,
+                        Name = item.m.Name,
+                        Description = item.m.Description,
+                        ReleaseDate = item.m.ReleaseDate,
+                        Duration = item.m.Duration,
+                        Url = item.m.Url,
+                        MovieShowTimeDetails = movieShowTimeDetails
+                    });
+                }
+            }
+
+            return result;
         }
 
         public Task<MovieDto> UpdateAsync(int id, MovieDto movieDto)
