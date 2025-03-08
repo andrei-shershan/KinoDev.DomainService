@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\KinoDev.DomainService.Domain\KinoDev.DomainService.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
