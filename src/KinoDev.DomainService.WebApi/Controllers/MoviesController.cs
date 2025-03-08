@@ -29,7 +29,6 @@ namespace KinoDev.DomainService.WebApi.Controllers
             return NotFound();
         }
 
-        [AllowAnonymous]
         [HttpGet("showing")]
         public async Task<IActionResult> GetShowingMovies([FromQuery] DateTime date)
         {
