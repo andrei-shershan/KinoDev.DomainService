@@ -1,5 +1,6 @@
 
 using KinoDev.DomainService.Domain.Extensions;
+using KinoDev.DomainService.Infrastructure.Extensions;
 using KinoDev.DomainService.WebApi.ConfigurationSettings;
 using KinoDev.DomainService.WebApi.SetupExtensions;
 using Microsoft.IdentityModel.Protocols.Configuration;
@@ -36,6 +37,7 @@ namespace KinoDev.DomainService.WebApi
             var migrationAssembly = "KinoDev.DomainService.WebApi";
 
             builder.Services.InitializeDomain(connectionString, migrationAssembly);
+            builder.Services.InitializeInfrastructure();
 
             // CORS
             builder.Services.AddCors(options =>

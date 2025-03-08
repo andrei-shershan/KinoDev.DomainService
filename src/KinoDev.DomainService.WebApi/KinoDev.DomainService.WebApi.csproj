@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\KinoDev.DomainService.Domain\KinoDev.DomainService.Domain.csproj" />
+    <ProjectReference Include="..\KinoDev.DomainService.Infrastructure\KinoDev.DomainService.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
