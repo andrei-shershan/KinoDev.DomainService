@@ -1,7 +1,7 @@
 ﻿using KinoDev.DomainService.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
+using KinoDev.Shared.Extensions;
 
 namespace KinoDev.DomainService.WebApi.Controllers
 {
@@ -21,7 +21,25 @@ namespace KinoDev.DomainService.WebApi.Controllers
         public async Task<IActionResult> GetAllMovies()
         {
             var movies = await _movieService.GetAllAsync();
-            if (!movies.IsNullOrEmpty())
+            if (!movies.IsNullOrEmptyCollection())
+            {
+                return Ok(movies);
+            }
+
+            return NotFound();
+        }
+
+        [HttpGet("showing")]
+        public async Task<IActionResult> GetShowingMovies([FromQuery] DateTime date)
+        {
+            date = date.Date;
+            if (date == default)
+            {
+                date = DateTime.UtcNow.Date;
+            }
+
+            var movies = await _movieService.GetShowingMovies(date);
+            if (!movies.IsNullOrEmptyCollection())
             {
                 return Ok(movies);
             }
