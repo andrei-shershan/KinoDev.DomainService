@@ -16,7 +16,6 @@ namespace KinoDev.DomainService.Infrastructure.Services
         Task<MovieDto> CreateAsync(MovieDto movieDto);
         Task<MovieDto> UpdateAsync(int id, MovieDto movieDto);
         Task<bool> DeleteAsync(int id);
-
         Task<IEnumerable<ShowingMovie>> GetShowingMoviesAsync(DateTime date);
     }
 
