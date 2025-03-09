@@ -9,6 +9,8 @@ namespace KinoDev.DomainService.Infrastructure.Extensions
         {
             services.AddTransient<IMovieService, MovieService>();
 
+            services.AddTransient<IDateTimeService, DateTimeService>();
+
             return services;
         }
     }

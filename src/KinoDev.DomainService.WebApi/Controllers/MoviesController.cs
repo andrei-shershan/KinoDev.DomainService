@@ -11,10 +11,12 @@ namespace KinoDev.DomainService.WebApi.Controllers
     public class MoviesController : ControllerBase
     {
         private readonly IMovieService _movieService;
+        private readonly IDateTimeService _dateTimeService;
 
-        public MoviesController(IMovieService movieService)
+        public MoviesController(IMovieService movieService, IDateTimeService dateTimeService)
         {
             _movieService = movieService;
+            _dateTimeService = dateTimeService;
         }
 
         [HttpGet]
@@ -35,10 +37,10 @@ namespace KinoDev.DomainService.WebApi.Controllers
             date = date.Date;
             if (date == default)
             {
-                date = DateTime.UtcNow.Date;
+                date = _dateTimeService.UtcNow();
             }
 
-            var movies = await _movieService.GetShowingMovies(date);
+            var movies = await _movieService.GetShowingMoviesAsync(date);
             if (!movies.IsNullOrEmptyCollection())
             {
                 return Ok(movies);
