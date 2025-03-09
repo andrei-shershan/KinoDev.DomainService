@@ -1,22 +1,11 @@
-﻿using KinoDev.DomainService.Infrastructure.Services;
-using KinoDev.DomainService.WebApi.Controllers;
-using KinoDev.Shared.DtoModels;
+﻿using KinoDev.Shared.DtoModels;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 
-namespace KinoDev.DomainService.WebApi.UnitTests.Controllers
+namespace KinoDev.DomainService.WebApi.UnitTests.Controllers.MoviesControllerTests
 {
-    public class MoviesControllerTests
+    public class GetAllMoviesTests : MoviesControllerBaseTests
     {
-        private readonly Mock<IMovieService> _mockMovieService;
-        private readonly MoviesController _controller;
-
-        public MoviesControllerTests()
-        {
-            _mockMovieService = new Mock<IMovieService>();
-            _controller = new MoviesController(_mockMovieService.Object);
-        }
-
         [Fact]
         public async Task GetAllMovies_ReturnsOkResult_WithListOfMovies()
         {

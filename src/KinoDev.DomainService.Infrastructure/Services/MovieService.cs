@@ -17,7 +17,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
         Task<MovieDto> UpdateAsync(int id, MovieDto movieDto);
         Task<bool> DeleteAsync(int id);
 
-        Task<IEnumerable<ShowingMovie>> GetShowingMovies(DateTime date);
+        Task<IEnumerable<ShowingMovie>> GetShowingMoviesAsync(DateTime date);
     }
 
     public class MovieService : IMovieService
@@ -55,7 +55,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
             throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<ShowingMovie>> GetShowingMovies(DateTime date)
+        public async Task<IEnumerable<ShowingMovie>> GetShowingMoviesAsync(DateTime date)
         {
             Console.WriteLine("TEST 1");
             var dbResults = await
