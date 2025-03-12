@@ -56,7 +56,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
 
         public async Task<IEnumerable<ShowingMovie>> GetShowingMoviesAsync(DateTime date)
         {
-            Console.WriteLine("TEST 1");
+            var movies = await _dbContext.Movies.ToListAsync();
             var dbResults = await
                 _dbContext
                     .Movies
@@ -73,8 +73,9 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 var item = group.FirstOrDefault();
                 if (item != null)
                 {
-                    var movieShowTimeDetails = group.Select(st => new MovieShowTimeDetails
+                    var moviesShowTimeDetails = group.Select(st => new MovieShowTimeDetails
                     {
+                        Id = st.st.Id,
                         HallId = item.h.Id,
                         HallName = item.h.Name,
                         Time = st.st.Time,
@@ -90,7 +91,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                         ReleaseDate = item.m.ReleaseDate,
                         Duration = item.m.Duration,
                         Url = item.m.Url,
-                        MovieShowTimeDetails = movieShowTimeDetails
+                        MoviesShowTimeDetails = moviesShowTimeDetails
                     });
                 }
             }
