@@ -11,6 +11,8 @@ namespace KinoDev.DomainService.Infrastructure.Extensions
 
             services.AddTransient<IDateTimeService, DateTimeService>();
 
+            services.AddTransient<IShowTimeService, ShowTimeService>();
+
             return services;
         }
     }

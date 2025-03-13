@@ -7,8 +7,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace KinoDev.DomainService.Infrastructure.Services
 {
-
-
     public interface IMovieService
     {
         Task<MovieDto> GetByIdAsync(int id);
