@@ -83,7 +83,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                         Id = x.Id,
                         Row = x.Row,
                         Number = x.Number,
-                        IsAvailable = dbShowTimeTickets?.FirstOrDefault(x => x.SeatId == x.Id) == null
+                        IsAvailable = dbShowTimeTickets?.FirstOrDefault(stt => stt.SeatId == x.Id) == null
                     })
                 };
             }
