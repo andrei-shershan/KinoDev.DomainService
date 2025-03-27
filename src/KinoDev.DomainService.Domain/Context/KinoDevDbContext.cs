@@ -53,8 +53,7 @@ namespace KinoDev.DomainService.Domain.Context
             builder
                 .Property(t => t.Id)
                 .HasColumnType("char(36)")
-                .HasDefaultValueSql("(UUID())")
-                .ValueGeneratedOnAdd();
+                .HasDefaultValueSql("(UUID())");
         }
 
         private void OverrideDefaultTypes(ModelBuilder modelBuilder)

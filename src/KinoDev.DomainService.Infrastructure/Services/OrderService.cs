@@ -71,6 +71,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 {
                     var dbTicket = new Ticket()
                     {
+                        Id = Guid.NewGuid(),
                         ShowTimeId = orderModel.ShowTimeId,
                         SeatId = seatId,
                         OrderId = dbAddOrderResult.Entity.Id
