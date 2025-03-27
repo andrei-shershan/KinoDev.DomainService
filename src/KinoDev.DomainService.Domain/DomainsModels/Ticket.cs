@@ -1,12 +1,12 @@
 ﻿namespace KinoDev.DomainService.Domain.DomainsModels
 {
-    public class Ticket : BaseEntity
+    public class Ticket : BaseGuidEntity
     {
         public int ShowTimeId { get; set; }
 
         public int SeatId { get; set; }
 
-        public int OrderId { get; set; }
+        public Guid OrderId { get; set; }
 
         public ShowTime ShowTime { get; set; } = null!;
 

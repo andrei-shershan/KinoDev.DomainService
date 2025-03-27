@@ -1,6 +1,6 @@
 ﻿namespace KinoDev.DomainService.Domain.DomainsModels
 {
-    public class Hall : BaseEntity
+    public class Hall : BaseIdEntity
     {
         public string Name { get; set; }
 

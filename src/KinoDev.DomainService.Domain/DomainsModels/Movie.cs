@@ -1,6 +1,6 @@
 ﻿namespace KinoDev.DomainService.Domain.DomainsModels
 {
-    public class Movie : BaseEntity
+    public class Movie : BaseIdEntity
     {
         public string Name { get; set; }
 

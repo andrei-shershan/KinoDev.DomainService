@@ -27,6 +27,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
             var dbShowTime = await _dbContext.ShowTimes.FirstOrDefaultAsync(x => x.Id == orderModel.ShowTimeId);
             if (dbShowTime == null)
             {
+                System.Console.WriteLine("dbShowTime is null");
                 return null;
             }
 
@@ -35,6 +36,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 || seats.Count == 0
                 || seats.Count != orderModel.SelectedSeatIds.Count())
             {
+                System.Console.WriteLine("seats is null or empty or count not equal to selected seat ids count");
                 return null;
             }
 
@@ -45,18 +47,23 @@ namespace KinoDev.DomainService.Infrastructure.Services
             {
                 var order = new Order()
                 {
+                    Id = Guid.NewGuid(),
                     CreatedAt = DateTime.Now,
                     Cost = orderCost,
                     State = OrderState.New
                 };
 
+                System.Console.WriteLine("1.1");
+
                 var dbAddOrderResult = await _dbContext.Orders.AddAsync(order);
                 if (dbAddOrderResult?.State != EntityState.Added)
                 {
+                    System.Console.WriteLine("dbAddOrderResult is null or state is not added");
                     await transaction.RollbackAsync();
                     return null;
                 }
 
+                System.Console.WriteLine("1.2");
                 await _dbContext.SaveChangesAsync();
 
                 var dbTickets = new List<Ticket>();
@@ -72,8 +79,15 @@ namespace KinoDev.DomainService.Infrastructure.Services
                     dbTickets.Add(dbTicket);
                 }
 
+                System.Console.WriteLine("1");
+
                 await _dbContext.Tickets.AddRangeAsync(dbTickets);
+                System.Console.WriteLine("2");
+
                 await _dbContext.SaveChangesAsync();
+
+                System.Console.WriteLine("3");
+
 
                 await transaction.CommitAsync();
 
@@ -92,8 +106,13 @@ namespace KinoDev.DomainService.Infrastructure.Services
                     }).ToList()
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
+                System.Console.WriteLine(ex.Message);
+                System.Console.WriteLine(ex.StackTrace);
+                System.Console.WriteLine("*************************************************");
+                System.Console.WriteLine(ex.InnerException?.Message);
+                System.Console.WriteLine(ex.InnerException?.StackTrace);
                 await transaction.RollbackAsync();
                 return null;
             }

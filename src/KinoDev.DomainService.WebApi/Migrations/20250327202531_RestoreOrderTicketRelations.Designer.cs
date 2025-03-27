@@ -4,6 +4,7 @@ using KinoDev.DomainService.Domain.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KinoDev.DomainService.WebApi.Migrations
 {
     [DbContext(typeof(KinoDevDbContext))]
-    partial class KinoDevDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250327202531_RestoreOrderTicketRelations")]
+    partial class RestoreOrderTicketRelations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -77,8 +80,7 @@ namespace KinoDev.DomainService.WebApi.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
-                        .HasDefaultValueSql("(UUID())");
+                        .HasColumnType("char(36)");
 
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime(0)");
@@ -154,8 +156,7 @@ namespace KinoDev.DomainService.WebApi.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
-                        .HasDefaultValueSql("(UUID())");
+                        .HasColumnType("char(36)");
 
                     b.Property<Guid>("OrderId")
                         .HasColumnType("char(36)");
