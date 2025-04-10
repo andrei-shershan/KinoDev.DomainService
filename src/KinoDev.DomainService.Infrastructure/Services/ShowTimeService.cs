@@ -1,6 +1,6 @@
 using KinoDev.DomainService.Domain.Context;
-using KinoDev.Shared.DtoModels;
 using KinoDev.Shared.DtoModels.Hall;
+using KinoDev.Shared.DtoModels.Movies;
 using KinoDev.Shared.DtoModels.ShowTimes;
 using Microsoft.EntityFrameworkCore;
 

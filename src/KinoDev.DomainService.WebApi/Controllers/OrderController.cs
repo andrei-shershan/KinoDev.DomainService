@@ -17,10 +17,21 @@ namespace KinoDev.DomainService.WebApi.Controllers
             _orderServcie = orderServcie;
         }
 
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> GetOrderAsync(Guid id)
+        {
+            var order = await _orderServcie.GetOrderAsync(id);
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(order);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateOrderAsync([FromBody] CreateOrderModel orderModel)
         {
-            System.Console.WriteLine("CreateOrderAsync");
             var result = await _orderServcie.CreateOrderAsync(orderModel);
             if (result == null)
             {

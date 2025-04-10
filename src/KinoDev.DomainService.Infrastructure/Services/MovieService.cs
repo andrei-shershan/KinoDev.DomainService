@@ -1,7 +1,7 @@
 ﻿using KinoDev.DomainService.Domain.Context;
 using KinoDev.DomainService.Domain.DomainsModels;
 using KinoDev.DomainService.Infrastructure.Mappers;
-using KinoDev.Shared.DtoModels;
+using KinoDev.Shared.DtoModels.Movies;
 using KinoDev.Shared.DtoModels.ShowingMovies;
 using Microsoft.EntityFrameworkCore;
 
@@ -54,7 +54,6 @@ namespace KinoDev.DomainService.Infrastructure.Services
 
         public async Task<IEnumerable<ShowingMovie>> GetShowingMoviesAsync(DateTime date)
         {
-            var movies = await _dbContext.Movies.ToListAsync();
             var dbResults = await
                 _dbContext
                     .Movies

@@ -1,5 +1,5 @@
 ﻿using KinoDev.DomainService.Domain.DomainsModels;
-using KinoDev.Shared.DtoModels;
+using KinoDev.Shared.DtoModels.Movies;
 
 namespace KinoDev.DomainService.Infrastructure.Mappers
 {

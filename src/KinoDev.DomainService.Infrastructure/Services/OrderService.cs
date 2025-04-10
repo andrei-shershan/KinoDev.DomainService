@@ -1,7 +1,10 @@
 using KinoDev.DomainService.Domain.Context;
 using KinoDev.DomainService.Domain.DomainsModels;
 using KinoDev.DomainService.Infrastructure.Models;
+using KinoDev.Shared.DtoModels.Hall;
+using KinoDev.Shared.DtoModels.Movies;
 using KinoDev.Shared.DtoModels.Orders;
+using KinoDev.Shared.DtoModels.ShowTimes;
 using KinoDev.Shared.DtoModels.Tickets;
 using KinoDev.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +13,8 @@ namespace KinoDev.DomainService.Infrastructure.Services
 {
     public interface IOrderService
     {
-        Task<OrderDto> CreateOrderAsync(CreateOrderModel orderModel);
+        Task<OrderSummary> CreateOrderAsync(CreateOrderModel orderModel);
+        Task<OrderSummary> GetOrderAsync(Guid id);
     }
 
     public class OrderService : IOrderService
@@ -22,12 +26,15 @@ namespace KinoDev.DomainService.Infrastructure.Services
             _dbContext = dbContext;
         }
 
-        public async Task<OrderDto> CreateOrderAsync(CreateOrderModel orderModel)
+        public async Task<OrderSummary> CreateOrderAsync(CreateOrderModel orderModel)
         {
-            var dbShowTime = await _dbContext.ShowTimes.FirstOrDefaultAsync(x => x.Id == orderModel.ShowTimeId);
+            var dbShowTime = await _dbContext.ShowTimes
+                .Include(x => x.Movie)
+                .Include(x => x.Hall)
+                .FirstOrDefaultAsync(x => x.Id == orderModel.ShowTimeId);
+
             if (dbShowTime == null)
             {
-                System.Console.WriteLine("dbShowTime is null");
                 return null;
             }
 
@@ -36,7 +43,6 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 || seats.Count == 0
                 || seats.Count != orderModel.SelectedSeatIds.Count())
             {
-                System.Console.WriteLine("seats is null or empty or count not equal to selected seat ids count");
                 return null;
             }
 
@@ -53,17 +59,13 @@ namespace KinoDev.DomainService.Infrastructure.Services
                     State = OrderState.New
                 };
 
-                System.Console.WriteLine("1.1");
-
                 var dbAddOrderResult = await _dbContext.Orders.AddAsync(order);
                 if (dbAddOrderResult?.State != EntityState.Added)
                 {
-                    System.Console.WriteLine("dbAddOrderResult is null or state is not added");
                     await transaction.RollbackAsync();
                     return null;
                 }
 
-                System.Console.WriteLine("1.2");
                 await _dbContext.SaveChangesAsync();
 
                 var dbTickets = new List<Ticket>();
@@ -80,43 +82,116 @@ namespace KinoDev.DomainService.Infrastructure.Services
                     dbTickets.Add(dbTicket);
                 }
 
-                System.Console.WriteLine("1");
-
                 await _dbContext.Tickets.AddRangeAsync(dbTickets);
-                System.Console.WriteLine("2");
 
                 await _dbContext.SaveChangesAsync();
 
-                System.Console.WriteLine("3");
-
-
                 await transaction.CommitAsync();
 
-                return new OrderDto()
+                return new OrderSummary()
                 {
                     Id = dbAddOrderResult.Entity.Id,
                     Cost = dbAddOrderResult.Entity.Cost,
                     State = dbAddOrderResult.Entity.State,
                     CreatedAt = dbAddOrderResult.Entity.CreatedAt,
-                    Ticket = dbTickets.Select(x => new TicketDto()
+                    ShowTimeSummary = new ShowTimeSummary()
                     {
-                        Id = x.Id,
-                        ShowTimeId = x.ShowTimeId,
-                        SeatId = x.SeatId,
-                        OrderId = x.OrderId
+                        Id = dbShowTime.Id,
+                        Time = dbShowTime.Time,
+                        Movie = new MovieDto()
+                        {
+                            Id = dbShowTime.Movie.Id,
+                            Name = dbShowTime.Movie.Name,
+                            Description = dbShowTime.Movie.Description,
+                            Duration = dbShowTime.Movie.Duration,
+                            ReleaseDate = dbShowTime.Movie.ReleaseDate,
+                            Url = dbShowTime.Movie.Url
+                        },
+                        Hall = new HallDto()
+                        {
+                            Id = dbShowTime.Hall.Id,
+                            Name = dbShowTime.Hall.Name,
+                        }
+                    },
+                    Tickets = dbTickets.Select(x => new TickerSummary()
+                    {
+                        Number = x.Seat.Number,
+                        Row = x.Seat.Row,
+                        SeatId = x.Seat.Id,
+                        Price = dbShowTime.Price,
+                        TicketId = x.Id,
                     }).ToList()
                 };
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine(ex.Message);
-                System.Console.WriteLine(ex.StackTrace);
-                System.Console.WriteLine("*************************************************");
-                System.Console.WriteLine(ex.InnerException?.Message);
-                System.Console.WriteLine(ex.InnerException?.StackTrace);
                 await transaction.RollbackAsync();
                 return null;
             }
+        }
+
+        public async Task<OrderSummary> GetOrderAsync(Guid id)
+        {
+            // TODO: Check SQL query performance
+            // TODO: Opimise response
+            var dbOrderData = await _dbContext.Orders
+                .Join(_dbContext.Tickets, o => o.Id, t => t.OrderId, (o, t) => new { o, t })
+                .Join(_dbContext.ShowTimes, x => x.t.ShowTimeId, st => st.Id, (x, st) => new { x.o, x.t, st })
+                .Join(_dbContext.Seats, x => x.t.SeatId, s => s.Id, (x, s) => new { x.o, x.t, x.st, s })
+                .Where(x => x.o.Id == id)
+                .ToListAsync();
+
+            // TODO: Add validations
+            if (dbOrderData == null || dbOrderData.Count == 0 || dbOrderData.FirstOrDefault() == null)
+            {
+                return null;
+            }
+
+            var dbShowTimeData = await _dbContext.ShowTimes
+                .Include(x => x.Movie)
+                .Include(x => x.Hall)
+                .FirstOrDefaultAsync(x => x.Id == dbOrderData.FirstOrDefault().st.Id);
+
+            if (dbShowTimeData == null || dbShowTimeData.Movie == null || dbShowTimeData.Hall == null)
+            {
+                return null;
+            }
+
+            return new OrderSummary()
+            {
+                CompletedAt = dbOrderData.FirstOrDefault().o.CompletedAt,
+                CreatedAt = dbOrderData.FirstOrDefault().o.CreatedAt,
+                Cost = dbOrderData.FirstOrDefault().o.Cost,
+                Id = dbOrderData.FirstOrDefault().o.Id,
+                State = dbOrderData.FirstOrDefault().o.State,
+                ShowTimeSummary = new ShowTimeSummary()
+                {
+                    Id = dbOrderData.FirstOrDefault().st.Id,
+                    Time = dbOrderData.FirstOrDefault().st.Time,
+                    Movie = new MovieDto()
+                    {
+                        Id = dbShowTimeData.Movie.Id,
+                        Name = dbShowTimeData.Movie.Name,
+                        Description = dbShowTimeData.Movie.Description,
+                        Duration = dbShowTimeData.Movie.Duration,
+                        ReleaseDate = dbShowTimeData.Movie.ReleaseDate,
+                        Url = dbShowTimeData.Movie.Url
+                    },
+                    Hall = new HallDto()
+                    {
+                        Id = dbShowTimeData.Hall.Id,
+                        Name = dbShowTimeData.Hall.Name,
+                    }
+                },
+                Tickets = dbOrderData.Select(x => new TickerSummary()
+                {
+                    Number = x.s.Number,
+                    Row = x.s.Row,
+                    SeatId = x.s.Id,
+                    Price = x.st.Price,
+                    TicketId = x.t.Id,
+                }).ToList()
+            };
         }
     }
 }

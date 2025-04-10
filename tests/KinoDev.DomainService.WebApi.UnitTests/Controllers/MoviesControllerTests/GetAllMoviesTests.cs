@@ -1,4 +1,4 @@
-﻿using KinoDev.Shared.DtoModels;
+﻿using KinoDev.Shared.DtoModels.Movies;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 
