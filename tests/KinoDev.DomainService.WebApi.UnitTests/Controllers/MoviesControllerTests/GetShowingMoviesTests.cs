@@ -20,7 +20,7 @@ namespace KinoDev.DomainService.WebApi.UnitTests.Controllers.MoviesControllerTes
                 {
                     Id = 1,
                     Name = "Movie 1",
-                    MovieShowTimeDetails = new List<MovieShowTimeDetails>()
+                    MoviesShowTimeDetails = new List<MovieShowTimeDetails>()
                     {
                         new MovieShowTimeDetails()
                         {
@@ -44,7 +44,7 @@ namespace KinoDev.DomainService.WebApi.UnitTests.Controllers.MoviesControllerTes
             var returnValue = Assert.IsAssignableFrom<IEnumerable<ShowingMovie>>(okResult.Value);
             Assert.Equal(showingMovies, returnValue);
 
-            Assert.Contains(returnValue, x => x.Id == 1 && x.Name == "Movie 1" && x.MovieShowTimeDetails.FirstOrDefault(st => st.HallId == 1) != null);
+            Assert.Contains(returnValue, x => x.Id == 1 && x.Name == "Movie 1" && x.MoviesShowTimeDetails.FirstOrDefault(st => st.HallId == 1) != null);
 
             _mockMovieService.Verify(x => x.GetShowingMoviesAsync(It.Is<DateTime>(d => d == expectedDate)), Times.Once);
         }

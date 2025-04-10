@@ -4,6 +4,7 @@ using KinoDev.DomainService.Domain.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KinoDev.DomainService.WebApi.Migrations
 {
     [DbContext(typeof(KinoDevDbContext))]
-    partial class KinoDevDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250327201535_TicketChangeIdToGuid")]
+    partial class TicketChangeIdToGuid
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -75,10 +78,11 @@ namespace KinoDev.DomainService.WebApi.Migrations
 
             modelBuilder.Entity("KinoDev.DomainService.Domain.DomainsModels.Order", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
-                        .HasDefaultValueSql("(UUID())");
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime(0)");
@@ -154,10 +158,6 @@ namespace KinoDev.DomainService.WebApi.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
-                        .HasDefaultValueSql("(UUID())");
-
-                    b.Property<Guid>("OrderId")
                         .HasColumnType("char(36)");
 
                     b.Property<int>("SeatId")
@@ -167,8 +167,6 @@ namespace KinoDev.DomainService.WebApi.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("OrderId");
 
                     b.HasIndex("SeatId");
 
@@ -209,12 +207,6 @@ namespace KinoDev.DomainService.WebApi.Migrations
 
             modelBuilder.Entity("KinoDev.DomainService.Domain.DomainsModels.Ticket", b =>
                 {
-                    b.HasOne("KinoDev.DomainService.Domain.DomainsModels.Order", "Order")
-                        .WithMany("Ticket")
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("KinoDev.DomainService.Domain.DomainsModels.Seat", "Seat")
                         .WithMany("Tickets")
                         .HasForeignKey("SeatId")
@@ -226,8 +218,6 @@ namespace KinoDev.DomainService.WebApi.Migrations
                         .HasForeignKey("ShowTimeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Order");
 
                     b.Navigation("Seat");
 
@@ -244,11 +234,6 @@ namespace KinoDev.DomainService.WebApi.Migrations
             modelBuilder.Entity("KinoDev.DomainService.Domain.DomainsModels.Movie", b =>
                 {
                     b.Navigation("ShowTimes");
-                });
-
-            modelBuilder.Entity("KinoDev.DomainService.Domain.DomainsModels.Order", b =>
-                {
-                    b.Navigation("Ticket");
                 });
 
             modelBuilder.Entity("KinoDev.DomainService.Domain.DomainsModels.Seat", b =>

@@ -2,6 +2,7 @@
 using KinoDev.DomainService.Domain.DomainsModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Reflection.Emit;
 
 namespace KinoDev.DomainService.Domain.Context
 {
@@ -25,6 +26,9 @@ namespace KinoDev.DomainService.Domain.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            OnGuidModelCreate(modelBuilder.Entity<Order>());
+            OnGuidModelCreate(modelBuilder.Entity<Ticket>());
+
             OverrideDefaultTypes(modelBuilder);
 
             OnModelCreating(modelBuilder.Entity<Hall>());
@@ -42,6 +46,14 @@ namespace KinoDev.DomainService.Domain.Context
         {
             builder.Property(x => x.Name).HasMaxLength(MySqlConstants.SHORT_NAME_MAX_LENGTH);
             builder.Property(x => x.Description).HasMaxLength(MySqlConstants.DESCRIPTION_MAX_LENGTH);
+        }
+
+        private void OnGuidModelCreate<T>(EntityTypeBuilder<T> builder) where T : BaseGuidEntity
+        {
+            builder
+                .Property(t => t.Id)
+                .HasColumnType("char(36)")
+                .HasDefaultValueSql("(UUID())");
         }
 
         private void OverrideDefaultTypes(ModelBuilder modelBuilder)

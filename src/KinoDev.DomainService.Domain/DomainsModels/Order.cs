@@ -2,7 +2,7 @@
 
 namespace KinoDev.DomainService.Domain.DomainsModels
 {
-    public class Order : BaseEntity
+    public class Order : BaseGuidEntity
     {
         public decimal Cost { get; set; }
 
