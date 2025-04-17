@@ -29,6 +29,18 @@ namespace KinoDev.DomainService.WebApi.Controllers
             return Ok(order);
         }
 
+        [HttpGet("summary/{id:guid}")]
+        public async Task<IActionResult> GetOrderSummaryAsync(Guid id)
+        {
+            var order = await _orderServcie.GetOrderAsync(id);
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(order);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateOrderAsync([FromBody] CreateOrderModel orderModel)
         {
@@ -36,6 +48,18 @@ namespace KinoDev.DomainService.WebApi.Controllers
             if (result == null)
             {
                 return BadRequest();
+            }
+
+            return Ok(result);
+        }
+
+        [HttpPost("{id:guid}/complete")]
+        public async Task<IActionResult> CompleteOrderAsync(Guid id)
+        {
+            var result = await _orderServcie.CompleteOrderAsync(id);
+            if (result == null)
+            {
+                return NotFound();
             }
 
             return Ok(result);

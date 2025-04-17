@@ -15,6 +15,8 @@ namespace KinoDev.DomainService.Infrastructure.Services
     {
         Task<OrderSummary> CreateOrderAsync(CreateOrderModel orderModel);
         Task<OrderSummary> GetOrderAsync(Guid id);
+
+        Task<OrderDto> CompleteOrderAsync(Guid id);
     }
 
     public class OrderService : IOrderService
@@ -24,6 +26,34 @@ namespace KinoDev.DomainService.Infrastructure.Services
         public OrderService(KinoDevDbContext dbContext)
         {
             _dbContext = dbContext;
+        }
+
+        public async Task<OrderDto> CompleteOrderAsync(Guid id)
+        {
+            var dbOrder = await _dbContext.Orders.FirstOrDefaultAsync(x => x.Id == id);
+            if (dbOrder == null || dbOrder.State != OrderState.New)
+            {
+                return null;
+            }
+
+            dbOrder.State = OrderState.Completed;
+            dbOrder.CompletedAt = DateTime.Now;
+
+            var dbUpdateResult = _dbContext.Orders.Update(dbOrder);
+            if (dbUpdateResult?.State != EntityState.Modified)
+            {
+                return null;
+            }
+
+            await _dbContext.SaveChangesAsync();
+            return new OrderDto()
+            {
+                Id = dbOrder.Id,
+                CreatedAt = dbOrder.CreatedAt,
+                CompletedAt = dbOrder.CompletedAt,
+                Cost = dbOrder.Cost,
+                State = dbOrder.State                
+            };
         }
 
         public async Task<OrderSummary> CreateOrderAsync(CreateOrderModel orderModel)
