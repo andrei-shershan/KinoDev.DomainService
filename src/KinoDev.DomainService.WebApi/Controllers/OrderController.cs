@@ -64,5 +64,17 @@ namespace KinoDev.DomainService.WebApi.Controllers
 
             return Ok(result);
         }
+
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> DeleteOrderAsync(Guid id)
+        {
+            var result = await _orderServcie.DeleteOrderAsync(id);
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(result);
+        }
     }
 }

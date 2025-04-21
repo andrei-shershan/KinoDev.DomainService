@@ -17,6 +17,8 @@ namespace KinoDev.DomainService.Infrastructure.Services
         Task<OrderSummary> GetOrderAsync(Guid id);
 
         Task<OrderDto> CompleteOrderAsync(Guid id);
+
+        Task<bool> DeleteOrderAsync(Guid id);
     }
 
     public class OrderService : IOrderService
@@ -157,6 +159,37 @@ namespace KinoDev.DomainService.Infrastructure.Services
             {
                 await transaction.RollbackAsync();
                 return null;
+            }
+        }
+
+        public async Task<bool> DeleteOrderAsync(Guid id)
+        {
+            var order = await _dbContext.Orders.FirstOrDefaultAsync(x => x.Id == id);
+            if (order == null || order.State != OrderState.New)
+            {
+                // if order is not found or already completed, nothing to delete
+                return true;
+            }
+
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();
+            try
+            {
+                // Delete related tickets first
+                var tickets = await _dbContext.Tickets.Where(t => t.OrderId == id).ToListAsync();
+                _dbContext.Tickets.RemoveRange(tickets);
+
+                // Delete the order
+                _dbContext.Orders.Remove(order);
+                
+                await _dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+                
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                return false;
             }
         }
 
