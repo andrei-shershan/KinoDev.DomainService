@@ -41,7 +41,7 @@ namespace KinoDev.DomainService.WebApi.Controllers
             return Ok(order);
         }
 
-        [HttpPost]
+        [HttpPost("")]
         public async Task<IActionResult> CreateOrderAsync([FromBody] CreateOrderModel orderModel)
         {
             var result = await _orderServcie.CreateOrderAsync(orderModel);
@@ -52,6 +52,19 @@ namespace KinoDev.DomainService.WebApi.Controllers
 
             return Ok(result);
         }
+
+        [HttpPatch("{id:guid}/email")]
+        public async Task<IActionResult> UpdateOrderEmailAsync(Guid id, [FromBody] string email)
+        {
+            var result = await _orderServcie.UpdateOrderEmailAsync(id, email);
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(result);
+        }
+
 
         [HttpPost("{id:guid}/complete")]
         public async Task<IActionResult> CompleteOrderAsync(Guid id)
