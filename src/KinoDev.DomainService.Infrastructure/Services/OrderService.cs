@@ -15,6 +15,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
     public interface IOrderService
     {
         Task<OrderSummary> CreateOrderAsync(CreateOrderModel orderModel);
+
         Task<OrderSummary> GetOrderAsync(Guid id);
 
         Task<OrderDto> CompleteOrderAsync(Guid id);
@@ -22,6 +23,8 @@ namespace KinoDev.DomainService.Infrastructure.Services
         Task<bool> DeleteOrderAsync(Guid id);
 
         Task<OrderDto> UpdateOrderEmailAsync(Guid id, string email);
+
+        Task<IEnumerable<OrderSummary>> GetCompletedOrdersAsync(IEnumerable<Guid> orderIds, string email);
     }
 
     public class OrderService : IOrderService
@@ -60,7 +63,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 State = dbOrder.State,
                 Email = dbOrder.Email,
                 HashCode = dbOrder.HashCode,
-                UserId = dbOrder.UserId,                
+                UserId = dbOrder.UserId,
             };
         }
 
@@ -89,7 +92,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
             using var transaction = await _dbContext.Database.BeginTransactionAsync();
             try
             {
-                var id = Guid.NewGuid();               
+                var id = Guid.NewGuid();
                 var order = new Order()
                 {
                     Id = id,
@@ -194,10 +197,10 @@ namespace KinoDev.DomainService.Infrastructure.Services
 
                 // Delete the order
                 _dbContext.Orders.Remove(order);
-                
+
                 await _dbContext.SaveChangesAsync();
                 await transaction.CommitAsync();
-                
+
                 return true;
             }
             catch
@@ -205,6 +208,79 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 await transaction.RollbackAsync();
                 return false;
             }
+        }
+
+        public async Task<IEnumerable<OrderSummary>> GetCompletedOrdersAsync(IEnumerable<Guid> orderIds, string email)
+        {
+            // TODO: Check SQL query performance
+            // TODO: Opimise response
+            var dbOrderData = await _dbContext.Orders
+                .Join(_dbContext.Tickets, o => o.Id, t => t.OrderId, (o, t) => new { o, t })
+                .Join(_dbContext.ShowTimes, x => x.t.ShowTimeId, st => st.Id, (x, st) => new { x.o, x.t, st })
+                .Join(_dbContext.Seats, x => x.t.SeatId, s => s.Id, (x, s) => new { x.o, x.t, x.st, s })
+                .Where(x =>  orderIds.Contains(x.o.Id) && x.o.Email == email && x.o.State == OrderState.Completed)
+                .ToListAsync();
+
+            // TODO: Add validations
+            if (dbOrderData == null || dbOrderData.Count == 0)
+            {
+                return null;
+            }
+
+            var result = new List<OrderSummary>();
+            foreach (var order in dbOrderData.GroupBy(x => x.o.Id))
+            {
+                var dbShowTimeData = await _dbContext.ShowTimes
+                    .Include(x => x.Movie)
+                    .Include(x => x.Hall)
+                    .FirstOrDefaultAsync(x => x.Id == order.FirstOrDefault().st.Id);
+
+                if (dbShowTimeData == null || dbShowTimeData.Movie == null || dbShowTimeData.Hall == null)
+                {
+                    continue;
+                }
+
+                result.Add(new OrderSummary()
+                {
+                    CompletedAt = order.FirstOrDefault().o.CompletedAt,
+                    CreatedAt = order.FirstOrDefault().o.CreatedAt,
+                    Cost = order.FirstOrDefault().o.Cost,
+                    Id = order.FirstOrDefault().o.Id,
+                    State = order.FirstOrDefault().o.State,
+                    Email = order.FirstOrDefault().o.Email,
+                    HashCode = order.FirstOrDefault().o.HashCode,
+                    UserId = order.FirstOrDefault().o.UserId,
+                    ShowTimeSummary = new ShowTimeSummary()
+                    {
+                        Id = order.FirstOrDefault().st.Id,
+                        Time = order.FirstOrDefault().st.Time,
+                        Movie = new MovieDto()
+                        {
+                            Id = dbShowTimeData.Movie.Id,
+                            Name = dbShowTimeData.Movie.Name,
+                            Description = dbShowTimeData.Movie.Description,
+                            Duration = dbShowTimeData.Movie.Duration,
+                            ReleaseDate = dbShowTimeData.Movie.ReleaseDate,
+                            Url = dbShowTimeData.Movie.Url
+                        },
+                        Hall = new HallDto()
+                        {
+                            Id = dbShowTimeData.Hall.Id,
+                            Name = dbShowTimeData.Hall.Name,
+                        }
+                    },
+                    Tickets = order.Select(x => new TickerSummary()
+                    {
+                        Number = x.s.Number,
+                        Row = x.s.Row,
+                        SeatId = x.s.Id,
+                        Price = x.st.Price,
+                        TicketId = x.t.Id,
+                    }).ToList()
+                });
+            }
+
+            return result;       
         }
 
         public async Task<OrderSummary> GetOrderAsync(Guid id)
@@ -301,7 +377,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 State = dbOrder.State,
                 Email = dbOrder.Email,
                 HashCode = dbOrder.HashCode,
-                UserId = dbOrder.UserId,                
+                UserId = dbOrder.UserId,
             };
         }
     }
