@@ -26,8 +26,8 @@ namespace KinoDev.DomainService.Domain.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            OnGuidModelCreate(modelBuilder.Entity<Order>());
-            OnGuidModelCreate(modelBuilder.Entity<Ticket>());
+            OnModelCreating(modelBuilder.Entity<Order>());
+            OnModelCreating(modelBuilder.Entity<Ticket>());
 
             OverrideDefaultTypes(modelBuilder);
 
@@ -47,6 +47,35 @@ namespace KinoDev.DomainService.Domain.Context
             builder.Property(x => x.Name).HasMaxLength(MySqlConstants.SHORT_NAME_MAX_LENGTH);
             builder.Property(x => x.Description).HasMaxLength(MySqlConstants.DESCRIPTION_MAX_LENGTH);
         }
+
+        private void OnModelCreating(EntityTypeBuilder<Order> builder)
+        {
+            OnGuidModelCreate(builder);
+
+            builder
+                .Property(t => t.UserId)
+                .HasColumnType("char(36)")
+                .IsRequired(false)
+                .HasDefaultValue(null);
+
+            builder
+                .Property(t => t.Email)
+                .IsRequired(false)
+                .HasMaxLength(MySqlConstants.EMAIL_MAX_LENGTH)
+                .HasDefaultValue(null);
+
+            builder
+                .Property(t => t.HashCode)
+                .IsRequired(false)
+                .HasMaxLength(MySqlConstants.HASH_CODE_MAX_LENGTH)
+                .HasDefaultValue(null);    
+        }
+
+        private void OnModelCreating(EntityTypeBuilder<Ticket> builder)
+        {
+            OnGuidModelCreate(builder);
+        }
+
 
         private void OnGuidModelCreate<T>(EntityTypeBuilder<T> builder) where T : BaseGuidEntity
         {

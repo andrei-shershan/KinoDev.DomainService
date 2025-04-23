@@ -1,5 +1,6 @@
 using KinoDev.DomainService.Domain.Context;
 using KinoDev.DomainService.Domain.DomainsModels;
+using KinoDev.DomainService.Infrastructure.Helpers;
 using KinoDev.DomainService.Infrastructure.Models;
 using KinoDev.Shared.DtoModels.Hall;
 using KinoDev.Shared.DtoModels.Movies;
@@ -19,6 +20,8 @@ namespace KinoDev.DomainService.Infrastructure.Services
         Task<OrderDto> CompleteOrderAsync(Guid id);
 
         Task<bool> DeleteOrderAsync(Guid id);
+
+        Task<OrderDto> UpdateOrderEmailAsync(Guid id, string email);
     }
 
     public class OrderService : IOrderService
@@ -54,7 +57,10 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 CreatedAt = dbOrder.CreatedAt,
                 CompletedAt = dbOrder.CompletedAt,
                 Cost = dbOrder.Cost,
-                State = dbOrder.State                
+                State = dbOrder.State,
+                Email = dbOrder.Email,
+                HashCode = dbOrder.HashCode,
+                UserId = dbOrder.UserId,                
             };
         }
 
@@ -83,12 +89,16 @@ namespace KinoDev.DomainService.Infrastructure.Services
             using var transaction = await _dbContext.Database.BeginTransactionAsync();
             try
             {
+                var id = Guid.NewGuid();               
                 var order = new Order()
                 {
-                    Id = Guid.NewGuid(),
+                    Id = id,
                     CreatedAt = DateTime.Now,
                     Cost = orderCost,
-                    State = OrderState.New
+                    State = OrderState.New,
+                    Email = orderModel.Email,
+                    HashCode = HashHelper.CalculateSHA256(id.ToString(), orderModel.Email),
+                    UserId = orderModel.UserId,
                 };
 
                 var dbAddOrderResult = await _dbContext.Orders.AddAsync(order);
@@ -126,6 +136,10 @@ namespace KinoDev.DomainService.Infrastructure.Services
                     Cost = dbAddOrderResult.Entity.Cost,
                     State = dbAddOrderResult.Entity.State,
                     CreatedAt = dbAddOrderResult.Entity.CreatedAt,
+                    CompletedAt = dbAddOrderResult.Entity.CompletedAt,
+                    Email = dbAddOrderResult.Entity.Email,
+                    HashCode = dbAddOrderResult.Entity.HashCode,
+                    UserId = dbAddOrderResult.Entity.UserId,
                     ShowTimeSummary = new ShowTimeSummary()
                     {
                         Id = dbShowTime.Id,
@@ -227,6 +241,9 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 Cost = dbOrderData.FirstOrDefault().o.Cost,
                 Id = dbOrderData.FirstOrDefault().o.Id,
                 State = dbOrderData.FirstOrDefault().o.State,
+                Email = dbOrderData.FirstOrDefault().o.Email,
+                HashCode = dbOrderData.FirstOrDefault().o.HashCode,
+                UserId = dbOrderData.FirstOrDefault().o.UserId,
                 ShowTimeSummary = new ShowTimeSummary()
                 {
                     Id = dbOrderData.FirstOrDefault().st.Id,
@@ -254,6 +271,37 @@ namespace KinoDev.DomainService.Infrastructure.Services
                     Price = x.st.Price,
                     TicketId = x.t.Id,
                 }).ToList()
+            };
+        }
+
+        public async Task<OrderDto> UpdateOrderEmailAsync(Guid id, string email)
+        {
+            var dbOrder = await _dbContext.Orders.FirstOrDefaultAsync(x => x.Id == id);
+            if (dbOrder == null || dbOrder.State != OrderState.New)
+            {
+                return null;
+            }
+
+            dbOrder.Email = email;
+            dbOrder.HashCode = HashHelper.CalculateSHA256(dbOrder.Id.ToString(), email);
+
+            var dbUpdateResult = _dbContext.Orders.Update(dbOrder);
+            if (dbUpdateResult?.State != EntityState.Modified)
+            {
+                return null;
+            }
+
+            await _dbContext.SaveChangesAsync();
+            return new OrderDto()
+            {
+                Id = dbOrder.Id,
+                CreatedAt = dbOrder.CreatedAt,
+                CompletedAt = dbOrder.CompletedAt,
+                Cost = dbOrder.Cost,
+                State = dbOrder.State,
+                Email = dbOrder.Email,
+                HashCode = dbOrder.HashCode,
+                UserId = dbOrder.UserId,                
             };
         }
     }
