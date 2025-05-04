@@ -23,12 +23,12 @@ namespace KinoDev.DomainService.WebApi.Controllers
         public async Task<IActionResult> GetAllMovies()
         {
             var movies = await _movieService.GetAllAsync();
-            if (!movies.IsNullOrEmptyCollection())
+            if (movies.IsNullOrEmptyCollection())
             {
-                return Ok(movies);
+                return NotFound();
             }
 
-            return NotFound();
+            return Ok(movies);
         }
 
         [HttpGet("showing")]
@@ -41,12 +41,12 @@ namespace KinoDev.DomainService.WebApi.Controllers
             }
 
             var movies = await _movieService.GetShowingMoviesAsync(date);
-            if (!movies.IsNullOrEmptyCollection())
+            if (movies.IsNullOrEmptyCollection())
             {
-                return Ok(movies);
+                return NotFound();
             }
 
-            return NotFound();
+            return Ok(movies);
         }
     }
 }

@@ -1,5 +1,6 @@
 using KinoDev.DomainService.Infrastructure.Models;
 using KinoDev.DomainService.Infrastructure.Services;
+using KinoDev.DomainService.WebApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -41,13 +42,6 @@ namespace KinoDev.DomainService.WebApi.Controllers
             return Ok(order);
         }
 
-        public class GetCompletedOrdersModel
-        {
-            public IEnumerable<Guid> OrderIds { get; set; }
-
-            public string Email { get; set; }
-        }
-
         [HttpPost("completed")]
         public async Task<IActionResult> GetCompletedOrdersAsync([FromBody] GetCompletedOrdersModel model)
         {
@@ -84,7 +78,6 @@ namespace KinoDev.DomainService.WebApi.Controllers
             return Ok(result);
         }
 
-
         [HttpPost("{id:guid}/complete")]
         public async Task<IActionResult> CompleteOrderAsync(Guid id)
         {
@@ -101,12 +94,13 @@ namespace KinoDev.DomainService.WebApi.Controllers
         public async Task<IActionResult> DeleteOrderAsync(Guid id)
         {
             var result = await _orderServcie.DeleteOrderAsync(id);
-            if (result == null)
+            if (result)
             {
-                return NotFound();
+                return Ok(result);
+
             }
 
-            return Ok(result);
+            return BadRequest();
         }
     }
 }

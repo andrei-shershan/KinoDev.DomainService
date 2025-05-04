@@ -9,6 +9,7 @@ using KinoDev.Shared.DtoModels.ShowTimes;
 using KinoDev.Shared.DtoModels.Tickets;
 using KinoDev.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace KinoDev.DomainService.Infrastructure.Services
 {
@@ -31,9 +32,12 @@ namespace KinoDev.DomainService.Infrastructure.Services
     {
         private readonly KinoDevDbContext _dbContext;
 
-        public OrderService(KinoDevDbContext dbContext)
+        private readonly ILogger<OrderService> _logger;
+
+        public OrderService(KinoDevDbContext dbContext, ILogger<OrderService> logger)
         {
             _dbContext = dbContext;
+            _logger = logger;
         }
 
         public async Task<OrderDto> CompleteOrderAsync(Guid id)
@@ -41,6 +45,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
             var dbOrder = await _dbContext.Orders.FirstOrDefaultAsync(x => x.Id == id);
             if (dbOrder == null || dbOrder.State != OrderState.New)
             {
+                _logger.LogError($"Order with ID {id} not found or already completed.");
                 return null;
             }
 
@@ -50,6 +55,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
             var dbUpdateResult = _dbContext.Orders.Update(dbOrder);
             if (dbUpdateResult?.State != EntityState.Modified)
             {
+                _logger.LogError($"Failed to update order with ID {id}.");
                 return null;
             }
 
@@ -76,6 +82,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
 
             if (dbShowTime == null)
             {
+                _logger.LogError($"ShowTime with ID {orderModel.ShowTimeId} not found.");
                 return null;
             }
 
@@ -84,6 +91,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 || seats.Count == 0
                 || seats.Count != orderModel.SelectedSeatIds.Count())
             {
+                _logger.LogError($"Seats not found for the provided IDs: {string.Join(", ", orderModel.SelectedSeatIds)}.");
                 return null;
             }
 
@@ -108,6 +116,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 if (dbAddOrderResult?.State != EntityState.Added)
                 {
                     await transaction.RollbackAsync();
+                    _logger.LogError($"Failed to add order for ShowTime ID {orderModel.ShowTimeId}.");
                     return null;
                 }
 
@@ -175,6 +184,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
+                _logger.LogError($"Failed to create order for ShowTime ID {orderModel.ShowTimeId}: {ex.Message}");
                 return null;
             }
         }
@@ -206,6 +216,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
             catch
             {
                 await transaction.RollbackAsync();
+                _logger.LogError($"Failed to delete order with ID {id}.");
                 return false;
             }
         }
@@ -224,6 +235,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
             // TODO: Add validations
             if (dbOrderData == null || dbOrderData.Count == 0)
             {
+                _logger.LogError($"No completed orders found for the provided IDs: {string.Join(", ", orderIds)}.");
                 return null;
             }
 
@@ -297,6 +309,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
             // TODO: Add validations
             if (dbOrderData == null || dbOrderData.Count == 0 || dbOrderData.FirstOrDefault() == null)
             {
+                _logger.LogError($"Order with ID {id} not found.");
                 return null;
             }
 
@@ -307,6 +320,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
 
             if (dbShowTimeData == null || dbShowTimeData.Movie == null || dbShowTimeData.Hall == null)
             {
+                _logger.LogError($"ShowTime with ID {dbOrderData.FirstOrDefault().st.Id} not found.");
                 return null;
             }
 
@@ -355,6 +369,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
             var dbOrder = await _dbContext.Orders.FirstOrDefaultAsync(x => x.Id == id);
             if (dbOrder == null || dbOrder.State != OrderState.New)
             {
+                _logger.LogError($"Order with ID {id} not found or already completed.");
                 return null;
             }
 
@@ -364,6 +379,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
             var dbUpdateResult = _dbContext.Orders.Update(dbOrder);
             if (dbUpdateResult?.State != EntityState.Modified)
             {
+                _logger.LogError($"Failed to update order with ID {id}.");
                 return null;
             }
 

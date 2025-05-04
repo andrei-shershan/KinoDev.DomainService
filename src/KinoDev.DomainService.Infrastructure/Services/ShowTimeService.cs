@@ -3,6 +3,7 @@ using KinoDev.Shared.DtoModels.Hall;
 using KinoDev.Shared.DtoModels.Movies;
 using KinoDev.Shared.DtoModels.ShowTimes;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace KinoDev.DomainService.Infrastructure.Services
 {
@@ -17,9 +18,12 @@ namespace KinoDev.DomainService.Infrastructure.Services
     {
         private readonly KinoDevDbContext _dbContext;
 
-        public ShowTimeService(KinoDevDbContext dbContext)
+        private ILogger<ShowTimeService> _logger;
+
+        public ShowTimeService(KinoDevDbContext dbContext, ILogger<ShowTimeService> logger)
         {
             _dbContext = dbContext;
+            _logger = logger;
         }
 
         public async Task<ShowTimeDetailsDto> GetDetailsByIdAsync(int id)
@@ -53,8 +57,12 @@ namespace KinoDev.DomainService.Infrastructure.Services
                     }
                 };
             }
+            else
+            {
+                _logger.LogError($"ShowTime with id {id} not found.");
+                return null;
+            }
 
-            return null;
         }
 
         public async Task<ShowTimeSeatsDto> GetShowTimeSeatsAsync(int id)
@@ -87,8 +95,11 @@ namespace KinoDev.DomainService.Infrastructure.Services
                     })
                 };
             }
-
-            return null;
+            else
+            {
+                _logger.LogError($"ShowTime with id {id} not found.");
+                return null;
+            }
         }
     }
 }

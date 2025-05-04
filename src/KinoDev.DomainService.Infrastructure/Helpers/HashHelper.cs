@@ -3,6 +3,7 @@ using System.Text;
 
 namespace KinoDev.DomainService.Infrastructure.Helpers
 {
+    // TODO: Check if this helper is used
     public static class HashHelper
     {
         public static string CalculateSHA256(string input)
