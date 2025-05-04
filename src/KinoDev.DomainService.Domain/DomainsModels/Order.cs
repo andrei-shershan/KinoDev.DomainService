@@ -12,6 +12,14 @@ namespace KinoDev.DomainService.Domain.DomainsModels
 
         public DateTime? CompletedAt { get; set; }
 
+        public string Email { get; set; }
+
+        // TODO: Add index to HashCode
+        // TODO: Why do we need this hash?
+        public string HashCode { get; set; }
+
+        public Guid? UserId { get; set; }
+
         public ICollection<Ticket> Ticket { get; set; } = new List<Ticket>();
     }
 }

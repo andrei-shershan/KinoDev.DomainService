@@ -32,8 +32,6 @@ namespace KinoDev.DomainService.WebApi
                 throw new InvalidConfigurationException("Unable to obtain connection string!");
             }
 
-            Console.WriteLine($"Connection string in domain: {connectionString}");
-
             var migrationAssembly = "KinoDev.DomainService.WebApi";
 
             builder.Services.InitializeDomain(connectionString, migrationAssembly);
