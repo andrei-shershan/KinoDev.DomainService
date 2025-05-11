@@ -63,12 +63,6 @@ namespace KinoDev.DomainService.Domain.Context
                 .IsRequired(false)
                 .HasMaxLength(MySqlConstants.EMAIL_MAX_LENGTH)
                 .HasDefaultValue(null);
-
-            builder
-                .Property(t => t.HashCode)
-                .IsRequired(false)
-                .HasMaxLength(MySqlConstants.HASH_CODE_MAX_LENGTH)
-                .HasDefaultValue(null);    
         }
 
         private void OnModelCreating(EntityTypeBuilder<Ticket> builder)

@@ -1,8 +1,10 @@
 
 using KinoDev.DomainService.Domain.Extensions;
 using KinoDev.DomainService.Infrastructure.Extensions;
+using KinoDev.DomainService.Infrastructure.Models;
 using KinoDev.DomainService.WebApi.ConfigurationSettings;
 using KinoDev.DomainService.WebApi.SetupExtensions;
+using KinoDev.Shared.Models;
 using Microsoft.IdentityModel.Protocols.Configuration;
 
 namespace KinoDev.DomainService.WebApi
@@ -27,10 +29,17 @@ namespace KinoDev.DomainService.WebApi
 
             // TODO: move to settings
             var connectionString = builder.Configuration.GetConnectionString("Kinodev");
-            if (string.IsNullOrWhiteSpace(connectionString))
+            var rabbitMq = builder.Configuration.GetSection("RabbitMQ");
+            var messageBrokerSettings = builder.Configuration.GetSection("MessageBroker").Get<MessageBrokerSettings>();
+            if (string.IsNullOrWhiteSpace(connectionString)
+            || messageBrokerSettings == null
+            || rabbitMq == null)
             {
-                throw new InvalidConfigurationException("Unable to obtain connection string!");
+                throw new InvalidConfigurationException("Unable to obtain settings from config!");
             }
+
+            builder.Services.Configure<RabbitMqSettings>(builder.Configuration.GetSection("RabbitMq"));
+            builder.Services.Configure<MessageBrokerSettings>(builder.Configuration.GetSection("MessageBroker"));
 
             var migrationAssembly = "KinoDev.DomainService.WebApi";
 

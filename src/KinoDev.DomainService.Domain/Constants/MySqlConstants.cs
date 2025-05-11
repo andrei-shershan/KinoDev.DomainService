@@ -7,6 +7,5 @@
         public const int SHORT_NAME_MAX_LENGTH = 50;
         public const int DESCRIPTION_MAX_LENGTH = 1500;
         public const int EMAIL_MAX_LENGTH = 320;
-        public const int HASH_CODE_MAX_LENGTH = 64;
     }
 }
