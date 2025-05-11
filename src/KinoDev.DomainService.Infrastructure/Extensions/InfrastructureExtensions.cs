@@ -1,4 +1,5 @@
 ﻿using KinoDev.DomainService.Infrastructure.Services;
+using KinoDev.Shared.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace KinoDev.DomainService.Infrastructure.Extensions
@@ -14,6 +15,10 @@ namespace KinoDev.DomainService.Infrastructure.Extensions
             services.AddTransient<IShowTimeService, ShowTimeService>();
             
             services.AddTransient<IOrderService, OrderService>();
+
+            services.AddTransient<IMessageBrokerService, RabbitMQService>();
+
+            services.AddHostedService<MessagingSubscriber>();
 
             return services;
         }

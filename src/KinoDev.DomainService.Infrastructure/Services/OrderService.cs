@@ -26,6 +26,8 @@ namespace KinoDev.DomainService.Infrastructure.Services
         Task<OrderDto> UpdateOrderEmailAsync(Guid id, string email);
 
         Task<IEnumerable<OrderSummary>> GetCompletedOrdersAsync(IEnumerable<Guid> orderIds, string email);
+
+        Task<bool> SetEmailStatus(Guid id, bool emailSent);
     }
 
     public class OrderService : IOrderService
@@ -68,7 +70,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 Cost = dbOrder.Cost,
                 State = dbOrder.State,
                 Email = dbOrder.Email,
-                HashCode = dbOrder.HashCode,
+                EmailSent = dbOrder.EmailSent,
                 UserId = dbOrder.UserId,
             };
         }
@@ -108,7 +110,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                     Cost = orderCost,
                     State = OrderState.New,
                     Email = orderModel.Email,
-                    HashCode = HashHelper.CalculateSHA256(id.ToString(), orderModel.Email),
+                    EmailSent = false,
                     UserId = orderModel.UserId,
                 };
 
@@ -150,7 +152,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                     CreatedAt = dbAddOrderResult.Entity.CreatedAt,
                     CompletedAt = dbAddOrderResult.Entity.CompletedAt,
                     Email = dbAddOrderResult.Entity.Email,
-                    HashCode = dbAddOrderResult.Entity.HashCode,
+                    EmailSent = dbAddOrderResult.Entity.EmailSent,
                     UserId = dbAddOrderResult.Entity.UserId,
                     ShowTimeSummary = new ShowTimeSummary()
                     {
@@ -229,7 +231,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 .Join(_dbContext.Tickets, o => o.Id, t => t.OrderId, (o, t) => new { o, t })
                 .Join(_dbContext.ShowTimes, x => x.t.ShowTimeId, st => st.Id, (x, st) => new { x.o, x.t, st })
                 .Join(_dbContext.Seats, x => x.t.SeatId, s => s.Id, (x, s) => new { x.o, x.t, x.st, s })
-                .Where(x =>  orderIds.Contains(x.o.Id) && x.o.Email == email && x.o.State == OrderState.Completed)
+                .Where(x => orderIds.Contains(x.o.Id) && x.o.Email == email && x.o.State == OrderState.Completed)
                 .ToListAsync();
 
             // TODO: Add validations
@@ -260,7 +262,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                     Id = order.FirstOrDefault().o.Id,
                     State = order.FirstOrDefault().o.State,
                     Email = order.FirstOrDefault().o.Email,
-                    HashCode = order.FirstOrDefault().o.HashCode,
+                    EmailSent = order.FirstOrDefault().o.EmailSent,
                     UserId = order.FirstOrDefault().o.UserId,
                     ShowTimeSummary = new ShowTimeSummary()
                     {
@@ -292,7 +294,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 });
             }
 
-            return result;       
+            return result;
         }
 
         public async Task<OrderSummary> GetOrderAsync(Guid id)
@@ -332,7 +334,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 Id = dbOrderData.FirstOrDefault().o.Id,
                 State = dbOrderData.FirstOrDefault().o.State,
                 Email = dbOrderData.FirstOrDefault().o.Email,
-                HashCode = dbOrderData.FirstOrDefault().o.HashCode,
+                EmailSent = dbOrderData.FirstOrDefault().o.EmailSent,
                 UserId = dbOrderData.FirstOrDefault().o.UserId,
                 ShowTimeSummary = new ShowTimeSummary()
                 {
@@ -364,6 +366,27 @@ namespace KinoDev.DomainService.Infrastructure.Services
             };
         }
 
+        public async Task<bool> SetEmailStatus(Guid id, bool emailSent)
+        {
+            var dbOrder = await _dbContext.Orders.FirstOrDefaultAsync(x => x.Id == id);
+            if (dbOrder == null)
+            {
+                _logger.LogError($"Order with ID {id} not found.");
+                return false;
+            }
+
+            dbOrder.EmailSent = emailSent;
+            var dbUpdateResult = _dbContext.Orders.Update(dbOrder);
+            if (dbUpdateResult?.State != EntityState.Modified)
+            {
+                _logger.LogError($"Failed to update order with ID {id}.");
+                return false;
+            }
+
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<OrderDto> UpdateOrderEmailAsync(Guid id, string email)
         {
             var dbOrder = await _dbContext.Orders.FirstOrDefaultAsync(x => x.Id == id);
@@ -374,7 +397,6 @@ namespace KinoDev.DomainService.Infrastructure.Services
             }
 
             dbOrder.Email = email;
-            dbOrder.HashCode = HashHelper.CalculateSHA256(dbOrder.Id.ToString(), email);
 
             var dbUpdateResult = _dbContext.Orders.Update(dbOrder);
             if (dbUpdateResult?.State != EntityState.Modified)
@@ -392,7 +414,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 Cost = dbOrder.Cost,
                 State = dbOrder.State,
                 Email = dbOrder.Email,
-                HashCode = dbOrder.HashCode,
+                EmailSent = dbOrder.EmailSent,
                 UserId = dbOrder.UserId,
             };
         }
