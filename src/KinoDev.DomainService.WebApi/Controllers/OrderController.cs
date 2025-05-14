@@ -45,7 +45,24 @@ namespace KinoDev.DomainService.WebApi.Controllers
         [HttpPost("completed")]
         public async Task<IActionResult> GetCompletedOrdersAsync([FromBody] GetCompletedOrdersModel model)
         {
-            var orders = await _orderServcie.GetCompletedOrdersAsync(model.OrderIds, model.Email);
+            var orders = await _orderServcie.GetCompletedOrdersAsync(model.OrderIds);
+            if (orders == null || !orders.Any())
+            {
+                return NotFound();
+            }
+
+            return Ok(orders);
+        }
+
+        public class GetCompletedOrdersByEmailModel
+        {
+            public string Email { get; set; }
+        }
+        
+        [HttpPost("completed/email")]
+        public async Task<IActionResult> GetCompletedOrdersByEmailAsync([FromBody] GetCompletedOrdersByEmailModel model)
+        {
+            var orders = await _orderServcie.GetCompletedOrdersByEmailAsync(model.Email);
             if (orders == null || !orders.Any())
             {
                 return NotFound();
