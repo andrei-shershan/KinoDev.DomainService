@@ -25,7 +25,9 @@ namespace KinoDev.DomainService.Infrastructure.Services
 
         Task<OrderDto> UpdateOrderEmailAsync(Guid id, string email);
 
-        Task<IEnumerable<OrderSummary>> GetCompletedOrdersAsync(IEnumerable<Guid> orderIds, string email);
+        Task<IEnumerable<OrderSummary>> GetCompletedOrdersAsync(IEnumerable<Guid> orderIds);
+
+        Task<IEnumerable<OrderSummary>> GetCompletedOrdersByEmailAsync(string email);
 
         Task<bool> SetEmailStatus(Guid id, bool emailSent);
     }
@@ -223,7 +225,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
             }
         }
 
-        public async Task<IEnumerable<OrderSummary>> GetCompletedOrdersAsync(IEnumerable<Guid> orderIds, string email)
+        public async Task<IEnumerable<OrderSummary>> GetCompletedOrdersAsync(IEnumerable<Guid> orderIds)
         {
             // TODO: Check SQL query performance
             // TODO: Opimise response
@@ -231,13 +233,85 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 .Join(_dbContext.Tickets, o => o.Id, t => t.OrderId, (o, t) => new { o, t })
                 .Join(_dbContext.ShowTimes, x => x.t.ShowTimeId, st => st.Id, (x, st) => new { x.o, x.t, st })
                 .Join(_dbContext.Seats, x => x.t.SeatId, s => s.Id, (x, s) => new { x.o, x.t, x.st, s })
-                .Where(x => orderIds.Contains(x.o.Id) && x.o.Email == email && x.o.State == OrderState.Completed)
+                .Where(x => orderIds.Contains(x.o.Id) && x.o.State == OrderState.Completed)
                 .ToListAsync();
 
             // TODO: Add validations
             if (dbOrderData == null || dbOrderData.Count == 0)
             {
                 _logger.LogError($"No completed orders found for the provided IDs: {string.Join(", ", orderIds)}.");
+                return null;
+            }
+
+            var result = new List<OrderSummary>();
+            foreach (var order in dbOrderData.GroupBy(x => x.o.Id))
+            {
+                var dbShowTimeData = await _dbContext.ShowTimes
+                    .Include(x => x.Movie)
+                    .Include(x => x.Hall)
+                    .FirstOrDefaultAsync(x => x.Id == order.FirstOrDefault().st.Id);
+
+                if (dbShowTimeData == null || dbShowTimeData.Movie == null || dbShowTimeData.Hall == null)
+                {
+                    continue;
+                }
+
+                result.Add(new OrderSummary()
+                {
+                    CompletedAt = order.FirstOrDefault().o.CompletedAt,
+                    CreatedAt = order.FirstOrDefault().o.CreatedAt,
+                    Cost = order.FirstOrDefault().o.Cost,
+                    Id = order.FirstOrDefault().o.Id,
+                    State = order.FirstOrDefault().o.State,
+                    Email = order.FirstOrDefault().o.Email,
+                    EmailSent = order.FirstOrDefault().o.EmailSent,
+                    UserId = order.FirstOrDefault().o.UserId,
+                    ShowTimeSummary = new ShowTimeSummary()
+                    {
+                        Id = order.FirstOrDefault().st.Id,
+                        Time = order.FirstOrDefault().st.Time,
+                        Movie = new MovieDto()
+                        {
+                            Id = dbShowTimeData.Movie.Id,
+                            Name = dbShowTimeData.Movie.Name,
+                            Description = dbShowTimeData.Movie.Description,
+                            Duration = dbShowTimeData.Movie.Duration,
+                            ReleaseDate = dbShowTimeData.Movie.ReleaseDate,
+                            Url = dbShowTimeData.Movie.Url
+                        },
+                        Hall = new HallDto()
+                        {
+                            Id = dbShowTimeData.Hall.Id,
+                            Name = dbShowTimeData.Hall.Name,
+                        }
+                    },
+                    Tickets = order.Select(x => new TickerSummary()
+                    {
+                        Number = x.s.Number,
+                        Row = x.s.Row,
+                        SeatId = x.s.Id,
+                        Price = x.st.Price,
+                        TicketId = x.t.Id,
+                    }).ToList()
+                });
+            }
+
+            return result;
+        }
+
+        public async Task<IEnumerable<OrderSummary>> GetCompletedOrdersByEmailAsync(string email)
+        {
+            var dbOrderData = await _dbContext.Orders
+                .Join(_dbContext.Tickets, o => o.Id, t => t.OrderId, (o, t) => new { o, t })
+                .Join(_dbContext.ShowTimes, x => x.t.ShowTimeId, st => st.Id, (x, st) => new { x.o, x.t, st })
+                .Join(_dbContext.Seats, x => x.t.SeatId, s => s.Id, (x, s) => new { x.o, x.t, x.st, s })
+                .Where(x => x.o.Email == email && x.o.State == OrderState.Completed)
+                .ToListAsync();
+
+            // TODO: Add validations
+            if (dbOrderData == null || dbOrderData.Count == 0)
+            {
+                _logger.LogError($"No completed orders found for the provided email: {email}");
                 return null;
             }
 
