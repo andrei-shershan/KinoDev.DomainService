@@ -44,7 +44,9 @@ namespace KinoDev.DomainService.WebApi
             var migrationAssembly = "KinoDev.DomainService.WebApi";
 
             builder.Services.InitializeDomain(connectionString, migrationAssembly);
-            builder.Services.InitializeInfrastructure();
+
+            var ignoreHostedService = builder.Configuration.GetValue<bool>("IgnoreHostedService");
+            builder.Services.InitializeInfrastructure(ignoreHostedService);
 
             // CORS
             builder.Services.AddCors(options =>

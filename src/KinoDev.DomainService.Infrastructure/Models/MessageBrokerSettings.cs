@@ -9,11 +9,17 @@ namespace KinoDev.DomainService.Infrastructure.Models
 
     public class Topics
     {
+        public string OrderFileCreated { get; set; }
+
+        public string OrderFileUrlAdded { get; set; }
+
         public string EmailSent { get; set; }
     }
 
     public class Queues
     {
-        public string DomainServiceEmailSent { get; set; }
+        public string OrderFileCreated { get; set; }
+
+        public string EmailSent { get; set; }
     }
 }

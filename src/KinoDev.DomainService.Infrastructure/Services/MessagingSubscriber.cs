@@ -1,4 +1,6 @@
+using System.Text.Json;
 using KinoDev.DomainService.Infrastructure.Models;
+using KinoDev.Shared.DtoModels.Orders;
 using KinoDev.Shared.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -13,41 +15,63 @@ namespace KinoDev.DomainService.Infrastructure.Services
         private readonly IOrderService _orderService;
         private readonly ILogger<MessagingSubscriber> _logger;
 
+        private readonly IOrderProcessorService _orderProcessorService;
+
         public MessagingSubscriber(
             IMessageBrokerService messageBrokerService,
             IOptions<MessageBrokerSettings> messageBrokerSettings,
             IOrderService orderService,
-            ILogger<MessagingSubscriber> logger)
+            ILogger<MessagingSubscriber> logger,
+            IOrderProcessorService orderProcessorService)
         {
             _messageBrokerService = messageBrokerService;
             _messageBrokerSettings = messageBrokerSettings.Value;
             _orderService = orderService;
             _logger = logger;
+            _orderProcessorService = orderProcessorService;
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            return _messageBrokerService.SubscribeAsync(
-                _messageBrokerSettings.Topics.EmailSent,
-                _messageBrokerSettings.Queues.DomainServiceEmailSent,
+            _messageBrokerService.SubscribeAsync(
+                _messageBrokerSettings.Topics.OrderFileCreated,
+                _messageBrokerSettings.Queues.OrderFileCreated,
                 async (message) =>
             {
-                _logger.LogInformation("Received message: {Message}", message);
-
                 try
                 {
-                    // Clean up the message by removing quotes and whitespace
-                    string cleanMessage = message.Trim().Trim('"');
-                   
-                    var orderId = Guid.Parse(cleanMessage);
+                    _logger.LogInformation("Received order completed message: {Message}", message);
+                    var orderSummary = JsonSerializer.Deserialize<OrderSummary>(message);
 
-                    await _orderService.SetEmailStatus(orderId, true);
+                    await _orderProcessorService.ProcessOrderFileUrl(orderSummary);
+                    _logger.LogInformation("Order file URL processed successfully for order ID: {OrderId}", orderSummary.Id);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error updating order status for order");
                 }
             });
+
+            _messageBrokerService.SubscribeAsync(
+                _messageBrokerSettings.Topics.EmailSent,
+                _messageBrokerSettings.Queues.EmailSent,
+                async (message) =>
+            {
+                try
+                {
+                    _logger.LogInformation("Received order completed message: {Message}", message);
+                    var orderSummary = JsonSerializer.Deserialize<OrderSummary>(message);
+
+                    await _orderProcessorService.ProcessOrderEmail(orderSummary);
+                    _logger.LogInformation("Order email processed successfully for order ID: {OrderId}", orderSummary.Id);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error updating order status for order");
+                }
+            });
+
+            return Task.CompletedTask;
         }
     }
 }

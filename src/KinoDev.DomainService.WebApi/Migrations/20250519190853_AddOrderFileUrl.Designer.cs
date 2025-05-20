@@ -4,6 +4,7 @@ using KinoDev.DomainService.Domain.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KinoDev.DomainService.WebApi.Migrations
 {
     [DbContext(typeof(KinoDevDbContext))]
-    partial class KinoDevDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250519190853_AddOrderFileUrl")]
+    partial class AddOrderFileUrl
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -97,8 +100,8 @@ namespace KinoDev.DomainService.WebApi.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("FileUrl")
-                        .HasMaxLength(1500)
-                        .HasColumnType("varchar(1500)");
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<int>("State")
                         .HasColumnType("int");
