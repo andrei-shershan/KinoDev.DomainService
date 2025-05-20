@@ -16,6 +16,8 @@ namespace KinoDev.DomainService.Domain.DomainsModels
 
         public bool EmailSent { get; set; }
 
+        public string FileUrl { get; set; }
+
         public Guid? UserId { get; set; }
 
         public ICollection<Ticket> Ticket { get; set; } = new List<Ticket>();

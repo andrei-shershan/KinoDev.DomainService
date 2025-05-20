@@ -30,6 +30,8 @@ namespace KinoDev.DomainService.Infrastructure.Services
         Task<IEnumerable<OrderSummary>> GetCompletedOrdersByEmailAsync(string email);
 
         Task<bool> SetEmailStatus(Guid id, bool emailSent);
+
+        Task<bool> SetFileUrl(Guid id, string fileUrl);
     }
 
     public class OrderService : IOrderService
@@ -156,6 +158,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                     Email = dbAddOrderResult.Entity.Email,
                     EmailSent = dbAddOrderResult.Entity.EmailSent,
                     UserId = dbAddOrderResult.Entity.UserId,
+                    FileUrl = dbAddOrderResult.Entity.FileUrl,
                     ShowTimeSummary = new ShowTimeSummary()
                     {
                         Id = dbShowTime.Id,
@@ -266,6 +269,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                     Email = order.FirstOrDefault().o.Email,
                     EmailSent = order.FirstOrDefault().o.EmailSent,
                     UserId = order.FirstOrDefault().o.UserId,
+                    FileUrl = order.FirstOrDefault().o.FileUrl,
                     ShowTimeSummary = new ShowTimeSummary()
                     {
                         Id = order.FirstOrDefault().st.Id,
@@ -338,6 +342,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                     Email = order.FirstOrDefault().o.Email,
                     EmailSent = order.FirstOrDefault().o.EmailSent,
                     UserId = order.FirstOrDefault().o.UserId,
+                    FileUrl = order.FirstOrDefault().o.FileUrl,
                     ShowTimeSummary = new ShowTimeSummary()
                     {
                         Id = order.FirstOrDefault().st.Id,
@@ -410,6 +415,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 Email = dbOrderData.FirstOrDefault().o.Email,
                 EmailSent = dbOrderData.FirstOrDefault().o.EmailSent,
                 UserId = dbOrderData.FirstOrDefault().o.UserId,
+                FileUrl = dbOrderData.FirstOrDefault().o.FileUrl,
                 ShowTimeSummary = new ShowTimeSummary()
                 {
                     Id = dbOrderData.FirstOrDefault().st.Id,
@@ -461,6 +467,26 @@ namespace KinoDev.DomainService.Infrastructure.Services
             return true;
         }
 
+        public Task<bool> SetFileUrl(Guid id, string fileUrl)
+        {
+            var dbOrder = _dbContext.Orders.FirstOrDefault(x => x.Id == id);
+            if (dbOrder == null)
+            {
+                _logger.LogError($"Order with ID {id} not found.");
+                return Task.FromResult(false);
+            }
+
+            dbOrder.FileUrl = fileUrl;
+            var dbUpdateResult = _dbContext.Orders.Update(dbOrder);
+            if (dbUpdateResult?.State != EntityState.Modified)
+            {
+                _logger.LogError($"Failed to update order with ID {id}.");
+                return Task.FromResult(false);
+            }
+
+            return Task.FromResult(true);
+        }
+
         public async Task<OrderDto> UpdateOrderEmailAsync(Guid id, string email)
         {
             var dbOrder = await _dbContext.Orders.FirstOrDefaultAsync(x => x.Id == id);
@@ -490,6 +516,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 Email = dbOrder.Email,
                 EmailSent = dbOrder.EmailSent,
                 UserId = dbOrder.UserId,
+                FileUrl = dbOrder.FileUrl,
             };
         }
     }
