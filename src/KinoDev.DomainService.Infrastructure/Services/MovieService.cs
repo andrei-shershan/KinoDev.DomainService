@@ -26,9 +26,21 @@ namespace KinoDev.DomainService.Infrastructure.Services
             _dbContext = dbContext;
         }
 
-        public Task<MovieDto> CreateAsync(MovieDto movieDto)
+        public async Task<MovieDto> CreateAsync(MovieDto movieDto)
         {
-            throw new NotImplementedException();
+            var movie = new Movie
+            {
+                Name = movieDto.Name,
+                Description = movieDto.Description,
+                ReleaseDate = movieDto.ReleaseDate,
+                Duration = movieDto.Duration,
+                Url = movieDto.Url
+            };
+
+            await _dbContext.Movies.AddAsync(movie);
+            await _dbContext.SaveChangesAsync();
+
+            return movie.ToDto();
         }
 
         public Task<bool> DeleteAsync(int id)
@@ -44,7 +56,8 @@ namespace KinoDev.DomainService.Infrastructure.Services
 
         public async Task<MovieDto> GetByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            var movie = await _dbContext.Movies.FindAsync(id);
+            return movie?.ToDto();
         }
 
         public IEnumerable<Movie> GetMovies()

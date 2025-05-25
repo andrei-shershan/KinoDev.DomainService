@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using KinoDev.Shared.Extensions;
+using KinoDev.Shared.DtoModels.Movies;
 
 namespace KinoDev.DomainService.WebApi.Controllers
 {
@@ -29,6 +30,32 @@ namespace KinoDev.DomainService.WebApi.Controllers
             }
 
             return Ok(movies);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateMovie([FromBody] MovieDto movieDto)
+        {
+            // Validate the incoming data
+            if (movieDto == null)
+            {
+                return BadRequest("Movie data is required.");
+            }
+
+            var createdMovie = await _movieService.CreateAsync(movieDto);
+
+            return CreatedAtAction(nameof(CreateMovie), createdMovie);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetMovieById(int id)
+        {
+            var movie = await _movieService.GetByIdAsync(id);
+            if (movie == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(movie);
         }
 
         [HttpGet("showing")]
