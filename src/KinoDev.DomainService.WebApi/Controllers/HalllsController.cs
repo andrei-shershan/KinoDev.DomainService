@@ -18,7 +18,6 @@ namespace KinoDev.DomainService.WebApi.Controllers
         }
 
         [HttpPost]
-        [AllowAnonymous]
         public async Task<IActionResult> CreateHall([FromBody] HallDto hallDto)
         {
             if (hallDto == null)
@@ -31,7 +30,6 @@ namespace KinoDev.DomainService.WebApi.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
         public async Task<IActionResult> GetHallsAsync()
         {
             var halls = await _hallsService.GetAllHallsAsync();
@@ -44,7 +42,6 @@ namespace KinoDev.DomainService.WebApi.Controllers
         }
 
         [HttpGet("{id}")]
-        [AllowAnonymous]
         public async Task<IActionResult> GetHallByIdAsync(int id)
         {
             var hall = await _hallsService.GetHallByIdAsync(id);
