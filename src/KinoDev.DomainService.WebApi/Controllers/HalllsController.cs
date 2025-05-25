@@ -42,7 +42,7 @@ namespace KinoDev.DomainService.WebApi.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetHallByIdAsync(int id)
+        public async Task<IActionResult> GetHallByIdAsync([FromRoute] int id)
         {
             var hall = await _hallsService.GetHallByIdAsync(id);
             if (hall == null)
