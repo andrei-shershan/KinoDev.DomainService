@@ -1,6 +1,9 @@
+using System.Transactions;
 using KinoDev.DomainService.Domain.Context;
+using KinoDev.DomainService.Domain.DomainsModels;
 using KinoDev.DomainService.Infrastructure.Mappers;
 using KinoDev.Shared.DtoModels.Hall;
+using KinoDev.Shared.DtoModels.Seats;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -8,9 +11,9 @@ namespace KinoDev.DomainService.Infrastructure.Services
 {
     public interface IHallsService
     {
-        Task<HallDto> CreateHallAsync(HallDto hallDto);
-        Task<IEnumerable<HallDto>> GetAllHallsAsync();
-        Task<HallDto> GetHallByIdAsync(int hallId);
+        Task<HallSummary> CreateHallAsync(string hallName, int rowsCount, int seatsCount);
+        Task<IEnumerable<HallSummary>> GetAllHallsAsync();
+        Task<HallSummary> GetHallByIdAsync(int hallId);
     }
 
     public class HallsService : IHallsService
@@ -25,33 +28,120 @@ namespace KinoDev.DomainService.Infrastructure.Services
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<HallDto> CreateHallAsync(HallDto hallDto)
+        public async Task<HallSummary> CreateHallAsync(string hallName, int rowsCount, int seatsCount)
         {
-            if (hallDto == null)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            var hall = new Hall()
             {
-                throw new ArgumentNullException(nameof(hallDto));
+                Name = hallName
+            };
+
+            try
+            {
+                await _context.Halls.AddAsync(hall);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while creating hall.");
+                await transaction.RollbackAsync();
+                return null;
             }
 
-            var hall = hallDto.ToDomainModel();
+            var seats = new List<Seat>();
+            for (int row = 1; row <= rowsCount; row++)
+            {
+                for (int seatNumber = 1; seatNumber <= seatsCount; seatNumber++)
+                {
+                    seats.Add(new Seat
+                    {
+                        Row = row,
+                        Number = seatNumber,
+                        HallId = hall.Id
+                    });
+                }
+            }
 
-            await _context.Halls.AddAsync(hall);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.Seats.AddRangeAsync(seats);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while adding seats to hall.");
+                await transaction.RollbackAsync();
+                return null;
+            }
 
-            return hall.ToDto();
+            await transaction.CommitAsync();
+
+            return new HallSummary
+            {
+                Id = hall.Id,
+                Name = hall.Name,
+                Seats = seats.Select(s => new SeatDto
+                {
+                    Id = s.Id,
+                    Row = s.Row,
+                    Number = s.Number,
+                    HallId = s.HallId,
+                }).ToList(),
+            };
         }
 
-        public async Task<IEnumerable<HallDto>> GetAllHallsAsync()
+        public async Task<IEnumerable<HallSummary>> GetAllHallsAsync()
         {
-            var halls = await _context.Halls.ToListAsync();
-            return halls.Select(h => h.ToDto());
+            var hallsWithSeats = await _context.Halls.Include(h => h.Seats)
+                .Include(h => h.ShowTimes)
+                .ToListAsync();
+
+            if (hallsWithSeats == null || !hallsWithSeats.Any())
+            {
+                _logger.LogWarning("No halls found in the database.");
+                return null;
+            }
+
+            return hallsWithSeats.Select(h => new HallSummary
+            {
+                Id = h.Id,
+                Name = h.Name,
+                Seats = h.Seats.Select(s => new SeatDto
+                {
+                    Id = s.Id,
+                    Row = s.Row,
+                    Number = s.Number,
+                    HallId = s.HallId,
+                }).ToList(),
+            });
         }
 
-        public async Task<HallDto> GetHallByIdAsync(int hallId)
+        public async Task<HallSummary> GetHallByIdAsync(int hallId)
         {
-            var hall = await _context.Halls
+            var hallWithSeats = await _context
+                .Halls
+                .Include(h => h.Seats)
                 .FirstOrDefaultAsync(h => h.Id == hallId);
 
-            return hall?.ToDto();
+            if (hallWithSeats == null)
+            {
+                _logger.LogWarning($"Hall with ID {hallId} not found.");
+                return null;
+            }
+
+            return new HallSummary
+            {
+                Id = hallWithSeats.Id,
+                Name = hallWithSeats.Name,
+                Seats = hallWithSeats.Seats.Select(s => new SeatDto
+                {
+                    Id = s.Id,
+                    Row = s.Row,
+                    Number = s.Number,
+                    HallId = s.HallId,
+                }).ToList(),
+            };
         }
     }
 }

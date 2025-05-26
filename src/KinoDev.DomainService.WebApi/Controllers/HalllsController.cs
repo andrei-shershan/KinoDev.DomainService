@@ -1,4 +1,5 @@
 using KinoDev.DomainService.Infrastructure.Services;
+using KinoDev.DomainService.WebApi.Models;
 using KinoDev.Shared.DtoModels.Hall;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,14 +19,23 @@ namespace KinoDev.DomainService.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateHall([FromBody] HallDto hallDto)
+        public async Task<IActionResult> CreateHall([FromBody] CreateHallWithSeatsRequest request)
         {
-            if (hallDto == null)
+            if (
+                request == null
+                || string.IsNullOrWhiteSpace(request.Name)
+                || request.RowsCount <= 0
+                || request.SeatsCount <= 0
+            )
             {
-                return BadRequest("Hall data is required.");
+                return BadRequest("Invalid hall creation request.");
             }
 
-            var createdHall = await _hallsService.CreateHallAsync(hallDto);
+            var createdHall = await _hallsService.CreateHallAsync(request.Name, request.RowsCount, request.SeatsCount);
+            if (createdHall == null)
+            {
+                return StatusCode(500, "An error occurred while creating the hall.");
+            }
             return CreatedAtAction(nameof(CreateHall), createdHall);
         }
 
