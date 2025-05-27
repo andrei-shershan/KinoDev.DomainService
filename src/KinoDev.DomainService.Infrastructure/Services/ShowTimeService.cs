@@ -9,6 +9,8 @@ namespace KinoDev.DomainService.Infrastructure.Services
 {
     public interface IShowTimeService
     {
+        Task<IEnumerable<ShowTimeDetailsDto>> GetAllAsync(DateTime start, DateTime end);
+
         Task<ShowTimeDetailsDto> GetDetailsByIdAsync(int id);
 
         Task<ShowTimeSeatsDto> GetShowTimeSeatsAsync(int id);
@@ -24,6 +26,68 @@ namespace KinoDev.DomainService.Infrastructure.Services
         {
             _dbContext = dbContext;
             _logger = logger;
+        }
+
+        public async Task<IEnumerable<ShowTimeDetailsDto>> GetAllAsync(DateTime startDate, DateTime endDate)
+        {
+            // Adjust date time to use date only
+            startDate = startDate.Date;
+            endDate = endDate.Date;
+
+            var dbShowTimes = await _dbContext
+                .ShowTimes
+                .Include(x => x.Hall)
+                .Include(x => x.Movie)
+                .Where(x => x.Time.Date >= startDate && x.Time.Date <= endDate)
+                .Select(x => new ShowTimeDetailsDto()
+                {
+                    Id = x.Id,
+                    Time = x.Time,
+                    Price = x.Price,
+                    Movie = new MovieDto()
+                    {
+                        Id = x.Movie.Id,
+                        Name = x.Movie.Name,
+                        Description = x.Movie.Description,
+                        ReleaseDate = x.Movie.ReleaseDate,
+                        Duration = x.Movie.Duration,
+                        Url = x.Movie.Url
+                    },
+                    Hall = new HallDto()
+                    {
+                        Id = x.Hall.Id,
+                        Name = x.Hall.Name
+                    }
+                })
+                .ToListAsync();
+
+            if (dbShowTimes == null || !dbShowTimes.Any())
+            {
+                _logger.LogWarning($"No show times found between {startDate} and {endDate}.");
+                return null;
+            }
+
+            return dbShowTimes
+                .Select(x => new ShowTimeDetailsDto()
+                {
+                    Id = x.Id,
+                    Time = x.Time,
+                    Price = x.Price,
+                    Movie = new MovieDto()
+                    {
+                        Id = x.Movie.Id,
+                        Name = x.Movie.Name,
+                        Description = x.Movie.Description,
+                        ReleaseDate = x.Movie.ReleaseDate,
+                        Duration = x.Movie.Duration,
+                        Url = x.Movie.Url
+                    },
+                    Hall = new HallDto()
+                    {
+                        Id = x.Hall.Id,
+                        Name = x.Hall.Name
+                    }
+                });
         }
 
         public async Task<ShowTimeDetailsDto> GetDetailsByIdAsync(int id)

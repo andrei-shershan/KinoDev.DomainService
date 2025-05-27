@@ -39,5 +39,17 @@ namespace KinoDev.DomainService.WebApi.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("{startDate:datetime}/{endDate:datetime}")]
+        public async Task<IActionResult> GetAllShowTimes([FromRoute] DateTime startDate, [FromRoute] DateTime endDate)
+        {
+            var result = await _showTimeService.GetAllAsync(startDate, endDate);
+            if (result == null || !result.Any())
+            {
+                return NotFound();
+            }
+
+            return Ok(result);
+        }
     }
 }
