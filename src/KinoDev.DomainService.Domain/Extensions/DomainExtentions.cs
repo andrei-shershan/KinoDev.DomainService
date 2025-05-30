@@ -22,7 +22,7 @@ namespace KinoDev.DomainService.Domain.Extensions
                 )
                 // TODO: Allow it for local development only
                 .EnableSensitiveDataLogging()
-                .LogTo(Console.WriteLine, LogLevel.Information);
+                .LogTo(Console.WriteLine, LogLevel.Debug);
             });
 
             return services;

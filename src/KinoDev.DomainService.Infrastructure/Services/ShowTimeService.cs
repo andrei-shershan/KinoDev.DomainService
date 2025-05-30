@@ -1,4 +1,6 @@
 using KinoDev.DomainService.Domain.Context;
+using KinoDev.DomainService.Domain.DomainsModels;
+using KinoDev.DomainService.Infrastructure.Models;
 using KinoDev.Shared.DtoModels.Hall;
 using KinoDev.Shared.DtoModels.Movies;
 using KinoDev.Shared.DtoModels.ShowTimes;
@@ -14,6 +16,8 @@ namespace KinoDev.DomainService.Infrastructure.Services
         Task<ShowTimeDetailsDto> GetDetailsByIdAsync(int id);
 
         Task<ShowTimeSeatsDto> GetShowTimeSeatsAsync(int id);
+
+        Task<bool> CreateAsync(CreateShowTimeRequest request);
     }
 
     public class ShowTimeService : IShowTimeService
@@ -26,6 +30,47 @@ namespace KinoDev.DomainService.Infrastructure.Services
         {
             _dbContext = dbContext;
             _logger = logger;
+        }
+
+        public async Task<bool> CreateAsync(CreateShowTimeRequest request)
+        {
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();
+            try
+            {
+                var movie = await _dbContext.Movies.FindAsync(request.MovieId);
+                if (movie == null)
+                {
+                    _logger.LogError($"Movie with id {request.MovieId} not found.");
+                    return false;
+                }
+
+                var hall = await _dbContext.Halls.FindAsync(request.HallId);
+                if (hall == null)
+                {
+                    _logger.LogError($"Hall with id {request.HallId} not found.");
+                    return false;
+                }
+
+                var showTime = new ShowTime()
+                {
+                    MovieId = request.MovieId,
+                    HallId = request.HallId,
+                    Time = request.Time,
+                    Price = request.Price
+                };
+
+                await _dbContext.ShowTimes.AddAsync(showTime);
+                await _dbContext.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while creating show time.");
+                await transaction.RollbackAsync();
+                return false;
+            }
         }
 
         public async Task<IEnumerable<ShowTimeDetailsDto>> GetAllAsync(DateTime startDate, DateTime endDate)
