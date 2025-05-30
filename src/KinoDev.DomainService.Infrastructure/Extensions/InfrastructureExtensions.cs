@@ -18,6 +18,8 @@ namespace KinoDev.DomainService.Infrastructure.Extensions
 
             services.AddTransient<IHallsService, HallsService>();
 
+            services.AddTransient<ISlotService, SlotService>();
+
             services.AddTransient<IMessageBrokerService, RabbitMQService>();
 
             if (!ignoreHostedService)
