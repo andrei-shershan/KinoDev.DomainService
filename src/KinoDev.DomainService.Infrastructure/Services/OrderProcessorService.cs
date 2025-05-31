@@ -1,4 +1,5 @@
 using KinoDev.DomainService.Infrastructure.ConfigurationModels;
+using KinoDev.DomainService.Infrastructure.Services.Abstractions;
 using KinoDev.Shared.DtoModels.Orders;
 using KinoDev.Shared.Services;
 using Microsoft.Extensions.Logging;
@@ -6,13 +7,6 @@ using Microsoft.Extensions.Options;
 
 namespace KinoDev.DomainService.Infrastructure.Services
 {
-    public interface IOrderProcessorService
-    {
-        Task ProcessOrderFileUrl(OrderSummary orderSummary);
-
-        Task ProcessOrderEmail(OrderSummary orderSummary);
-    }
-
     public class OrderProcessorService : IOrderProcessorService
     {
         private readonly IMessageBrokerService _messageBrokerService;

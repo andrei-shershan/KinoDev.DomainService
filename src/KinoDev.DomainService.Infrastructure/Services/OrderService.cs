@@ -1,6 +1,7 @@
 using KinoDev.DomainService.Domain.Context;
 using KinoDev.DomainService.Domain.DomainsModels;
 using KinoDev.DomainService.Infrastructure.Models;
+using KinoDev.DomainService.Infrastructure.Services.Abstractions;
 using KinoDev.Shared.DtoModels.Hall;
 using KinoDev.Shared.DtoModels.Movies;
 using KinoDev.Shared.DtoModels.Orders;
@@ -12,27 +13,6 @@ using Microsoft.Extensions.Logging;
 
 namespace KinoDev.DomainService.Infrastructure.Services
 {
-    public interface IOrderService
-    {
-        Task<OrderSummary> CreateOrderAsync(CreateOrderModel orderModel);
-
-        Task<OrderSummary> GetOrderAsync(Guid id);
-
-        Task<OrderDto> CompleteOrderAsync(Guid id);
-
-        Task<bool> DeleteOrderAsync(Guid id);
-
-        Task<OrderDto> UpdateOrderEmailAsync(Guid id, string email);
-
-        Task<IEnumerable<OrderSummary>> GetCompletedOrdersAsync(IEnumerable<Guid> orderIds);
-
-        Task<IEnumerable<OrderSummary>> GetCompletedOrdersByEmailAsync(string email);
-
-        Task<bool> SetEmailStatus(Guid id, bool emailSent);
-
-        Task<bool> SetFileUrl(Guid id, string fileUrl);
-    }
-
     public class OrderService : IOrderService
     {
         private readonly KinoDevDbContext _dbContext;

@@ -1,7 +1,6 @@
-using System.Transactions;
 using KinoDev.DomainService.Domain.Context;
 using KinoDev.DomainService.Domain.DomainsModels;
-using KinoDev.DomainService.Infrastructure.Mappers;
+using KinoDev.DomainService.Infrastructure.Services.Abstractions;
 using KinoDev.Shared.DtoModels.Hall;
 using KinoDev.Shared.DtoModels.Seats;
 using Microsoft.EntityFrameworkCore;
@@ -9,12 +8,6 @@ using Microsoft.Extensions.Logging;
 
 namespace KinoDev.DomainService.Infrastructure.Services
 {
-    public interface IHallsService
-    {
-        Task<HallSummary> CreateHallAsync(string hallName, int rowsCount, int seatsCount);
-        Task<IEnumerable<HallSummary>> GetAllHallsAsync();
-        Task<HallSummary> GetHallByIdAsync(int hallId);
-    }
 
     public class HallsService : IHallsService
     {

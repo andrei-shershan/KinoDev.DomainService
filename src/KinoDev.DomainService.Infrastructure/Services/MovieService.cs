@@ -1,22 +1,13 @@
 ﻿using KinoDev.DomainService.Domain.Context;
 using KinoDev.DomainService.Domain.DomainsModels;
 using KinoDev.DomainService.Infrastructure.Mappers;
+using KinoDev.DomainService.Infrastructure.Services.Abstractions;
 using KinoDev.Shared.DtoModels.Movies;
 using KinoDev.Shared.DtoModels.ShowingMovies;
 using Microsoft.EntityFrameworkCore;
 
 namespace KinoDev.DomainService.Infrastructure.Services
 {
-    public interface IMovieService
-    {
-        Task<MovieDto> GetByIdAsync(int id);
-        Task<IEnumerable<MovieDto>> GetAllAsync();
-        Task<MovieDto> CreateAsync(MovieDto movieDto);
-        Task<MovieDto> UpdateAsync(int id, MovieDto movieDto);
-        Task<bool> DeleteAsync(int id);
-        Task<IEnumerable<ShowingMovie>> GetShowingMoviesAsync(DateTime date);
-    }
-
     public class MovieService : IMovieService
     {
         private readonly KinoDevDbContext _dbContext;

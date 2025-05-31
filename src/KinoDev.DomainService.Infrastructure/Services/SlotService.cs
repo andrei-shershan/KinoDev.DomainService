@@ -1,4 +1,5 @@
 using KinoDev.DomainService.Domain.Context;
+using KinoDev.DomainService.Infrastructure.Services.Abstractions;
 using KinoDev.Shared.DtoModels.Hall;
 using KinoDev.Shared.DtoModels.Movies;
 using KinoDev.Shared.DtoModels.ShowTimes;
@@ -6,12 +7,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace KinoDev.DomainService.Infrastructure.Services
 {
-
-    public interface ISlotService
-    {
-        Task<ShowTimeForDateDto> GetShowTimeSlotsAsync(DateTime date);
-    }
-
     public class SlotService : ISlotService
     {
         private readonly KinoDevDbContext _dbContext;
