@@ -1,7 +1,6 @@
-
 using KinoDev.DomainService.Domain.Extensions;
+using KinoDev.DomainService.Infrastructure.ConfigurationModels;
 using KinoDev.DomainService.Infrastructure.Extensions;
-using KinoDev.DomainService.Infrastructure.Models;
 using KinoDev.DomainService.WebApi.ConfigurationSettings;
 using KinoDev.DomainService.WebApi.SetupExtensions;
 using KinoDev.Shared.Models;
@@ -19,74 +18,53 @@ namespace KinoDev.DomainService.WebApi
             builder.Configuration
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                //.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            // TODO: move to settings
             var connectionString = builder.Configuration.GetConnectionString("Kinodev");
             var rabbitMq = builder.Configuration.GetSection("RabbitMQ");
             var messageBrokerSettings = builder.Configuration.GetSection("MessageBroker").Get<MessageBrokerSettings>();
+            var domainDbSettings = builder.Configuration.GetSection("DomainDbSettings").Get<DomainDbSettings>();
+            var ignoreHostedService = builder.Configuration.GetValue<bool>("IgnoreHostedService");
+            var authenticationSettings = builder.Configuration.GetSection("Authentication").Get<AuthenticationSettings>();
+
             if (string.IsNullOrWhiteSpace(connectionString)
             || messageBrokerSettings == null
-            || rabbitMq == null)
+            || rabbitMq == null
+            || domainDbSettings == null
+            || authenticationSettings == null)
             {
-                throw new InvalidConfigurationException("Unable to obtain settings from config!");
+                throw new InvalidConfigurationException("Unable to obtain required settings from configuration!");
             }
 
             builder.Services.Configure<RabbitMqSettings>(builder.Configuration.GetSection("RabbitMq"));
             builder.Services.Configure<MessageBrokerSettings>(builder.Configuration.GetSection("MessageBroker"));
 
-            var migrationAssembly = "KinoDev.DomainService.WebApi";
-
-            builder.Services.InitializeDomain(connectionString, migrationAssembly);
-
-            var ignoreHostedService = builder.Configuration.GetValue<bool>("IgnoreHostedService");
+            builder.Services.InitializeDomain(connectionString, domainDbSettings.MigrationAssembly, domainDbSettings.LogSensitiveData);
             builder.Services.InitializeInfrastructure(ignoreHostedService);
-
-            // CORS
-            builder.Services.AddCors(options =>
-            {
-                options.AddDefaultPolicy(policy =>
-                {
-                    policy.AllowAnyOrigin()
-                        .AllowAnyMethod()
-                        .AllowAnyHeader();
-                    // .AllowCredentials();
-                });
-            });
-
-            var authenticationSettings = builder.Configuration.GetSection("Authentication").Get<AuthenticationSettings>();
-            if (authenticationSettings == null)
-            {
-                throw new InvalidConfigurationException("Unable to obtain AuthenticationSettings from configuration!");
-            }
-
             builder.Services.SetupAuthentication(authenticationSettings);
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
 
-            // TODO: Disable for localhost only
-            // app.UseHttpsRedirection();
+            var disableHttpsRedirection = builder.Configuration.GetValue<bool>("DisableHttpsRedirection");
+            if (!disableHttpsRedirection)
+            {
+                app.UseHttpsRedirection();
+            }
 
             app.UseRouting();
 
-            app.UseCors(); // Ensure CORS middleware is used
-
             app.UseAuthentication();
             app.UseAuthorization();
-
 
             app.MapControllers();
 

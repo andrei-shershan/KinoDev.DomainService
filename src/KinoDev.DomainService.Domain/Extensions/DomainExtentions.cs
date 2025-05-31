@@ -10,7 +10,8 @@ namespace KinoDev.DomainService.Domain.Extensions
         public static IServiceCollection InitializeDomain(
             this IServiceCollection services,
             string connectionString,
-            string migrationAssembly
+            string migrationAssembly,
+            bool logSensitiveData = false
         )
         {
             services.AddDbContext<KinoDevDbContext>(options =>
@@ -21,7 +22,7 @@ namespace KinoDev.DomainService.Domain.Extensions
                     sql => sql.MigrationsAssembly(migrationAssembly)
                 )
                 // TODO: Allow it for local development only
-                .EnableSensitiveDataLogging()
+                .EnableSensitiveDataLogging(logSensitiveData)
                 .LogTo(Console.WriteLine, LogLevel.Debug);
             });
 

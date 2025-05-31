@@ -1,12 +1,12 @@
-using KinoDev.DomainService.Infrastructure.Services;
+using KinoDev.DomainService.Infrastructure.Services.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KinoDev.DomainService.WebApi.Controllers
 {
-
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class SlotsController : ControllerBase
     {
         private readonly ISlotService _slotService;
