@@ -1,6 +1,7 @@
 using KinoDev.DomainService.Infrastructure.Models;
 using KinoDev.DomainService.Infrastructure.Services.Abstractions;
 using KinoDev.DomainService.WebApi.Models;
+using KinoDev.Shared.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -46,7 +47,7 @@ namespace KinoDev.DomainService.WebApi.Controllers
         public async Task<IActionResult> GetCompletedOrdersAsync([FromBody] GetCompletedOrdersModel model)
         {
             var orders = await _orderServcie.GetCompletedOrdersAsync(model.OrderIds);
-            if (orders == null || !orders.Any())
+            if (orders.IsNullOrEmptyCollection())
             {
                 return NotFound();
             }
@@ -58,7 +59,7 @@ namespace KinoDev.DomainService.WebApi.Controllers
         public async Task<IActionResult> GetCompletedOrdersByEmailAsync([FromBody] GetCompletedOrdersByEmailModel model)
         {
             var orders = await _orderServcie.GetCompletedOrdersByEmailAsync(model.Email);
-            if (orders == null || !orders.Any())
+            if (orders.IsNullOrEmptyCollection())
             {
                 return NotFound();
             }

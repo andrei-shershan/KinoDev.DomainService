@@ -17,8 +17,8 @@ namespace KinoDev.DomainService.Infrastructure.Mappers
                 Id = showTime.Id,
                 Time = showTime.Time,
                 Price = showTime.Price,
-                Movie = showTime.Movie?.ToDto(),
-                Hall = showTime.Hall?.ToDto(),
+                Movie = showTime.Movie.ToDto(),
+                Hall = showTime.Hall.ToDto(),
             };
         }
     }
