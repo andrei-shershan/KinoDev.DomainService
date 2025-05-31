@@ -1,5 +1,6 @@
 using KinoDev.DomainService.Infrastructure.Models;
-using KinoDev.DomainService.Infrastructure.Services;
+using KinoDev.DomainService.Infrastructure.Services.Abstractions;
+using KinoDev.Shared.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,12 +8,12 @@ namespace KinoDev.DomainService.WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [AllowAnonymous]
+    [Authorize]
     public class ShowTimesController : ControllerBase
     {
-        private readonly IShowTimeService _showTimeService;
+        private readonly IShowTimesService _showTimeService;
 
-        public ShowTimesController(IShowTimeService showTimeService)
+        public ShowTimesController(IShowTimesService showTimeService)
         {
             _showTimeService = showTimeService;
         }
@@ -35,7 +36,7 @@ namespace KinoDev.DomainService.WebApi.Controllers
             var result = await _showTimeService.GetShowTimeSeatsAsync(id);
             if (result == null)
             {
-                return NotFound("");
+                return NotFound();
             }
 
             return Ok(result);
@@ -45,7 +46,7 @@ namespace KinoDev.DomainService.WebApi.Controllers
         public async Task<IActionResult> GetAllShowTimes([FromRoute] DateTime startDate, [FromRoute] DateTime endDate)
         {
             var result = await _showTimeService.GetAllAsync(startDate, endDate);
-            if (result == null || !result.Any())
+            if (result.IsNullOrEmptyCollection())
             {
                 return NotFound();
             }
@@ -60,6 +61,7 @@ namespace KinoDev.DomainService.WebApi.Controllers
             {
                 return BadRequest("Invalid show time data.");
             }
+
             var result = await _showTimeService.CreateAsync(request);
             if (!result)
             {

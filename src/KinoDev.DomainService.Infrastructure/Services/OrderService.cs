@@ -1,5 +1,6 @@
 using KinoDev.DomainService.Domain.Context;
 using KinoDev.DomainService.Domain.DomainsModels;
+using KinoDev.DomainService.Infrastructure.Mappers;
 using KinoDev.DomainService.Infrastructure.Models;
 using KinoDev.DomainService.Infrastructure.Services.Abstractions;
 using KinoDev.Shared.DtoModels.Hall;
@@ -45,17 +46,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
             }
 
             await _dbContext.SaveChangesAsync();
-            return new OrderDto()
-            {
-                Id = dbOrder.Id,
-                CreatedAt = dbOrder.CreatedAt,
-                CompletedAt = dbOrder.CompletedAt,
-                Cost = dbOrder.Cost,
-                State = dbOrder.State,
-                Email = dbOrder.Email,
-                EmailSent = dbOrder.EmailSent,
-                UserId = dbOrder.UserId,
-            };
+            return dbOrder.ToDto();
         }
 
         public async Task<OrderSummary> CreateOrderAsync(CreateOrderModel orderModel)
@@ -127,45 +118,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
 
                 await transaction.CommitAsync();
 
-                return new OrderSummary()
-                {
-                    Id = dbAddOrderResult.Entity.Id,
-                    Cost = dbAddOrderResult.Entity.Cost,
-                    State = dbAddOrderResult.Entity.State,
-                    CreatedAt = dbAddOrderResult.Entity.CreatedAt,
-                    CompletedAt = dbAddOrderResult.Entity.CompletedAt,
-                    Email = dbAddOrderResult.Entity.Email,
-                    EmailSent = dbAddOrderResult.Entity.EmailSent,
-                    UserId = dbAddOrderResult.Entity.UserId,
-                    FileUrl = dbAddOrderResult.Entity.FileUrl,
-                    ShowTimeSummary = new ShowTimeSummary()
-                    {
-                        Id = dbShowTime.Id,
-                        Time = dbShowTime.Time,
-                        Movie = new MovieDto()
-                        {
-                            Id = dbShowTime.Movie.Id,
-                            Name = dbShowTime.Movie.Name,
-                            Description = dbShowTime.Movie.Description,
-                            Duration = dbShowTime.Movie.Duration,
-                            ReleaseDate = dbShowTime.Movie.ReleaseDate,
-                            Url = dbShowTime.Movie.Url
-                        },
-                        Hall = new HallDto()
-                        {
-                            Id = dbShowTime.Hall.Id,
-                            Name = dbShowTime.Hall.Name,
-                        }
-                    },
-                    Tickets = dbTickets.Select(x => new TickerSummary()
-                    {
-                        Number = x.Seat.Number,
-                        Row = x.Seat.Row,
-                        SeatId = x.Seat.Id,
-                        Price = dbShowTime.Price,
-                        TicketId = x.Id,
-                    }).ToList()
-                };
+                return GetOrderSummary(dbAddOrderResult.Entity, dbShowTime, dbTickets);
             }
             catch (Exception ex)
             {
@@ -226,57 +179,28 @@ namespace KinoDev.DomainService.Infrastructure.Services
             }
 
             var result = new List<OrderSummary>();
-            foreach (var order in dbOrderData.GroupBy(x => x.o.Id))
+            foreach (var orderGroup in dbOrderData.GroupBy(x => x.o.Id))
             {
                 var dbShowTimeData = await _dbContext.ShowTimes
                     .Include(x => x.Movie)
                     .Include(x => x.Hall)
-                    .FirstOrDefaultAsync(x => x.Id == order.FirstOrDefault().st.Id);
+                    .FirstOrDefaultAsync(x => x.Id == orderGroup.FirstOrDefault().st.Id);
 
                 if (dbShowTimeData == null || dbShowTimeData.Movie == null || dbShowTimeData.Hall == null)
                 {
                     continue;
                 }
 
-                result.Add(new OrderSummary()
+                var orderData = orderGroup.FirstOrDefault();
+                if (orderData == null)
                 {
-                    CompletedAt = order.FirstOrDefault().o.CompletedAt,
-                    CreatedAt = order.FirstOrDefault().o.CreatedAt,
-                    Cost = order.FirstOrDefault().o.Cost,
-                    Id = order.FirstOrDefault().o.Id,
-                    State = order.FirstOrDefault().o.State,
-                    Email = order.FirstOrDefault().o.Email,
-                    EmailSent = order.FirstOrDefault().o.EmailSent,
-                    UserId = order.FirstOrDefault().o.UserId,
-                    FileUrl = order.FirstOrDefault().o.FileUrl,
-                    ShowTimeSummary = new ShowTimeSummary()
-                    {
-                        Id = order.FirstOrDefault().st.Id,
-                        Time = order.FirstOrDefault().st.Time,
-                        Movie = new MovieDto()
-                        {
-                            Id = dbShowTimeData.Movie.Id,
-                            Name = dbShowTimeData.Movie.Name,
-                            Description = dbShowTimeData.Movie.Description,
-                            Duration = dbShowTimeData.Movie.Duration,
-                            ReleaseDate = dbShowTimeData.Movie.ReleaseDate,
-                            Url = dbShowTimeData.Movie.Url
-                        },
-                        Hall = new HallDto()
-                        {
-                            Id = dbShowTimeData.Hall.Id,
-                            Name = dbShowTimeData.Hall.Name,
-                        }
-                    },
-                    Tickets = order.Select(x => new TickerSummary()
-                    {
-                        Number = x.s.Number,
-                        Row = x.s.Row,
-                        SeatId = x.s.Id,
-                        Price = x.st.Price,
-                        TicketId = x.t.Id,
-                    }).ToList()
-                });
+                    _logger.LogError($"Order with ID {orderGroup.Key} not found.");
+                    continue;
+                }
+
+                var orderSummary = GetOrderSummary(orderData.o, dbShowTimeData, orderGroup.Select(x => x.t));
+
+                result.Add(orderSummary);
             }
 
             return result;
@@ -311,45 +235,9 @@ namespace KinoDev.DomainService.Infrastructure.Services
                     continue;
                 }
 
-                result.Add(new OrderSummary()
-                {
-                    CompletedAt = order.FirstOrDefault().o.CompletedAt,
-                    CreatedAt = order.FirstOrDefault().o.CreatedAt,
-                    Cost = order.FirstOrDefault().o.Cost,
-                    Id = order.FirstOrDefault().o.Id,
-                    State = order.FirstOrDefault().o.State,
-                    Email = order.FirstOrDefault().o.Email,
-                    EmailSent = order.FirstOrDefault().o.EmailSent,
-                    UserId = order.FirstOrDefault().o.UserId,
-                    FileUrl = order.FirstOrDefault().o.FileUrl,
-                    ShowTimeSummary = new ShowTimeSummary()
-                    {
-                        Id = order.FirstOrDefault().st.Id,
-                        Time = order.FirstOrDefault().st.Time,
-                        Movie = new MovieDto()
-                        {
-                            Id = dbShowTimeData.Movie.Id,
-                            Name = dbShowTimeData.Movie.Name,
-                            Description = dbShowTimeData.Movie.Description,
-                            Duration = dbShowTimeData.Movie.Duration,
-                            ReleaseDate = dbShowTimeData.Movie.ReleaseDate,
-                            Url = dbShowTimeData.Movie.Url
-                        },
-                        Hall = new HallDto()
-                        {
-                            Id = dbShowTimeData.Hall.Id,
-                            Name = dbShowTimeData.Hall.Name,
-                        }
-                    },
-                    Tickets = order.Select(x => new TickerSummary()
-                    {
-                        Number = x.s.Number,
-                        Row = x.s.Row,
-                        SeatId = x.s.Id,
-                        Price = x.st.Price,
-                        TicketId = x.t.Id,
-                    }).ToList()
-                });
+                var orderSummary = GetOrderSummary(order.FirstOrDefault().o, dbShowTimeData, order.Select(x => x.t));
+
+                result.Add(orderSummary);
             }
 
             return result;
@@ -384,45 +272,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 return null;
             }
 
-            return new OrderSummary()
-            {
-                CompletedAt = dbOrderData.FirstOrDefault().o.CompletedAt,
-                CreatedAt = dbOrderData.FirstOrDefault().o.CreatedAt,
-                Cost = dbOrderData.FirstOrDefault().o.Cost,
-                Id = dbOrderData.FirstOrDefault().o.Id,
-                State = dbOrderData.FirstOrDefault().o.State,
-                Email = dbOrderData.FirstOrDefault().o.Email,
-                EmailSent = dbOrderData.FirstOrDefault().o.EmailSent,
-                UserId = dbOrderData.FirstOrDefault().o.UserId,
-                FileUrl = dbOrderData.FirstOrDefault().o.FileUrl,
-                ShowTimeSummary = new ShowTimeSummary()
-                {
-                    Id = dbOrderData.FirstOrDefault().st.Id,
-                    Time = dbOrderData.FirstOrDefault().st.Time,
-                    Movie = new MovieDto()
-                    {
-                        Id = dbShowTimeData.Movie.Id,
-                        Name = dbShowTimeData.Movie.Name,
-                        Description = dbShowTimeData.Movie.Description,
-                        Duration = dbShowTimeData.Movie.Duration,
-                        ReleaseDate = dbShowTimeData.Movie.ReleaseDate,
-                        Url = dbShowTimeData.Movie.Url
-                    },
-                    Hall = new HallDto()
-                    {
-                        Id = dbShowTimeData.Hall.Id,
-                        Name = dbShowTimeData.Hall.Name,
-                    }
-                },
-                Tickets = dbOrderData.Select(x => new TickerSummary()
-                {
-                    Number = x.s.Number,
-                    Row = x.s.Row,
-                    SeatId = x.s.Id,
-                    Price = x.st.Price,
-                    TicketId = x.t.Id,
-                }).ToList()
-            };
+            return GetOrderSummary(dbOrderData.FirstOrDefault().o, dbShowTimeData, dbOrderData.Select(x => x.t));
         }
 
         public async Task<bool> SetEmailStatus(Guid id, bool emailSent)
@@ -485,17 +335,63 @@ namespace KinoDev.DomainService.Infrastructure.Services
             }
 
             await _dbContext.SaveChangesAsync();
-            return new OrderDto()
+            return dbOrder.ToDto();
+        }
+
+        private OrderSummary GetOrderSummary(Order order, ShowTime showTime, IEnumerable<Ticket?> tickets)
+        {
+            if (order == null || showTime == null || tickets == null)
             {
-                Id = dbOrder.Id,
-                CreatedAt = dbOrder.CreatedAt,
-                CompletedAt = dbOrder.CompletedAt,
-                Cost = dbOrder.Cost,
-                State = dbOrder.State,
-                Email = dbOrder.Email,
-                EmailSent = dbOrder.EmailSent,
-                UserId = dbOrder.UserId,
-                FileUrl = dbOrder.FileUrl,
+                _logger.LogError($"Order or ShowTime or Tickets data is null for Order ID {order?.Id}.");
+                return null;
+            }
+
+            return new OrderSummary()
+            {
+                Id = order.Id,
+                CreatedAt = order.CreatedAt,
+                CompletedAt = order.CompletedAt,
+                Cost = order.Cost,
+                State = order.State,
+                Email = order.Email,
+                EmailSent = order.EmailSent,
+                UserId = order.UserId,
+                FileUrl = order.FileUrl,
+                ShowTimeSummary = GetShowTimeSummary(showTime),
+                Tickets = tickets.Select(ticket => GetTickerSummary(ticket, showTime)).ToList()
+            };
+        }
+
+        private ShowTimeSummary GetShowTimeSummary(ShowTime showTime)
+        {
+            if (showTime == null)
+            {
+                return null;
+            }
+
+            return new ShowTimeSummary()
+            {
+                Id = showTime.Id,
+                Time = showTime.Time,
+                Movie = showTime.Movie.ToDto(),
+                Hall = showTime.Hall.ToDto()
+            };
+        }
+
+        private TickerSummary GetTickerSummary(Ticket ticket, ShowTime showTime)
+        {
+            if (ticket == null || showTime == null)
+            {
+                return null;
+            }
+
+            return new TickerSummary()
+            {
+                Number = ticket.Seat.Number,
+                Row = ticket.Seat.Row,
+                SeatId = ticket.Seat.Id,
+                Price = showTime.Price,
+                TicketId = ticket.Id
             };
         }
     }

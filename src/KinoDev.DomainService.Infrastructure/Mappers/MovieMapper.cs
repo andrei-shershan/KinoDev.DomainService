@@ -11,7 +11,7 @@ namespace KinoDev.DomainService.Infrastructure.Mappers
             {
                 return null;
             }
-            
+
             return new MovieDto()
             {
                 Description = movie.Description,
@@ -20,6 +20,24 @@ namespace KinoDev.DomainService.Infrastructure.Mappers
                 Name = movie.Name,
                 ReleaseDate = movie.ReleaseDate,
                 Url = movie.Url,
+            };
+        }
+        
+        public static Movie ToDomainModel(this MovieDto movieDto)
+        {
+            if (movieDto == null)
+            {
+                return null;
+            }
+
+            return new Movie()
+            {
+                Id = movieDto.Id,
+                Name = movieDto.Name,
+                Description = movieDto.Description,
+                ReleaseDate = movieDto.ReleaseDate,
+                Duration = movieDto.Duration,
+                Url = movieDto.Url
             };
         }
     }

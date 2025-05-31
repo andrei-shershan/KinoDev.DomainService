@@ -1,4 +1,5 @@
 ﻿using KinoDev.DomainService.Infrastructure.Services;
+using KinoDev.DomainService.Infrastructure.Services.Abstractions;
 using KinoDev.Shared.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,7 +11,7 @@ namespace KinoDev.DomainService.Infrastructure.Extensions
         {
             // Infrastructure services
             services.AddTransient<IMovieService, MovieService>();
-            services.AddTransient<IShowTimeService, ShowTimeService>();
+            services.AddTransient<IShowTimesService, ShowTimesService>();
             services.AddTransient<IOrderService, OrderService>();
             services.AddTransient<IHallsService, HallsService>();
             services.AddTransient<ISlotService, SlotService>();

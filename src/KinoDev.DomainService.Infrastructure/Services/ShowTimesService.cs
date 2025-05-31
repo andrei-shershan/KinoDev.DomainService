@@ -1,32 +1,24 @@
 using KinoDev.DomainService.Domain.Context;
 using KinoDev.DomainService.Domain.DomainsModels;
+using KinoDev.DomainService.Infrastructure.Mappers;
 using KinoDev.DomainService.Infrastructure.Models;
+using KinoDev.DomainService.Infrastructure.Services.Abstractions;
 using KinoDev.Shared.DtoModels.Hall;
 using KinoDev.Shared.DtoModels.Movies;
 using KinoDev.Shared.DtoModels.ShowTimes;
+using KinoDev.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace KinoDev.DomainService.Infrastructure.Services
 {
-    public interface IShowTimeService
-    {
-        Task<IEnumerable<ShowTimeDetailsDto>> GetAllAsync(DateTime start, DateTime end);
-
-        Task<ShowTimeDetailsDto> GetDetailsByIdAsync(int id);
-
-        Task<ShowTimeSeatsDto> GetShowTimeSeatsAsync(int id);
-
-        Task<bool> CreateAsync(CreateShowTimeRequest request);
-    }
-
-    public class ShowTimeService : IShowTimeService
+    public class ShowTimesService : IShowTimesService
     {
         private readonly KinoDevDbContext _dbContext;
 
-        private ILogger<ShowTimeService> _logger;
+        private ILogger<ShowTimesService> _logger;
 
-        public ShowTimeService(KinoDevDbContext dbContext, ILogger<ShowTimeService> logger)
+        public ShowTimesService(KinoDevDbContext dbContext, ILogger<ShowTimesService> logger)
         {
             _dbContext = dbContext;
             _logger = logger;
@@ -84,55 +76,16 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 .Include(x => x.Hall)
                 .Include(x => x.Movie)
                 .Where(x => x.Time.Date >= startDate && x.Time.Date <= endDate)
-                .Select(x => new ShowTimeDetailsDto()
-                {
-                    Id = x.Id,
-                    Time = x.Time,
-                    Price = x.Price,
-                    Movie = new MovieDto()
-                    {
-                        Id = x.Movie.Id,
-                        Name = x.Movie.Name,
-                        Description = x.Movie.Description,
-                        ReleaseDate = x.Movie.ReleaseDate,
-                        Duration = x.Movie.Duration,
-                        Url = x.Movie.Url
-                    },
-                    Hall = new HallDto()
-                    {
-                        Id = x.Hall.Id,
-                        Name = x.Hall.Name
-                    }
-                })
                 .ToListAsync();
 
-            if (dbShowTimes == null || !dbShowTimes.Any())
+            if (dbShowTimes.IsNullOrEmptyCollection())
             {
                 _logger.LogWarning($"No show times found between {startDate} and {endDate}.");
                 return null;
             }
 
             return dbShowTimes
-                .Select(x => new ShowTimeDetailsDto()
-                {
-                    Id = x.Id,
-                    Time = x.Time,
-                    Price = x.Price,
-                    Movie = new MovieDto()
-                    {
-                        Id = x.Movie.Id,
-                        Name = x.Movie.Name,
-                        Description = x.Movie.Description,
-                        ReleaseDate = x.Movie.ReleaseDate,
-                        Duration = x.Movie.Duration,
-                        Url = x.Movie.Url
-                    },
-                    Hall = new HallDto()
-                    {
-                        Id = x.Hall.Id,
-                        Name = x.Hall.Name
-                    }
-                });
+                .Select(x => x.ToDto());
         }
 
         public async Task<ShowTimeDetailsDto> GetDetailsByIdAsync(int id)
@@ -145,33 +98,13 @@ namespace KinoDev.DomainService.Infrastructure.Services
 
             if (dbResult != null)
             {
-                return new ShowTimeDetailsDto()
-                {
-                    Id = dbResult.Id,
-                    Time = dbResult.Time,
-                    Price = dbResult.Price,
-                    Movie = new MovieDto()
-                    {
-                        Id = dbResult.Movie.Id,
-                        Name = dbResult.Movie.Name,
-                        Description = dbResult.Movie.Description,
-                        ReleaseDate = dbResult.Movie.ReleaseDate,
-                        Duration = dbResult.Movie.Duration,
-                        Url = dbResult.Movie.Url
-                    },
-                    Hall = new HallDto()
-                    {
-                        Id = dbResult.Hall.Id,
-                        Name = dbResult.Hall.Name
-                    }
-                };
+                return dbResult.ToDto();
             }
             else
             {
                 _logger.LogError($"ShowTime with id {id} not found.");
                 return null;
             }
-
         }
 
         public async Task<ShowTimeSeatsDto> GetShowTimeSeatsAsync(int id)

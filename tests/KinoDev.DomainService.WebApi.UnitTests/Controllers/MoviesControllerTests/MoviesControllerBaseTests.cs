@@ -1,4 +1,4 @@
-﻿using KinoDev.DomainService.Infrastructure.Services;
+﻿using KinoDev.DomainService.Infrastructure.Services.Abstractions;
 using KinoDev.DomainService.WebApi.Controllers;
 using Moq;
 

@@ -1,6 +1,6 @@
-using KinoDev.DomainService.Infrastructure.Services;
+using KinoDev.DomainService.Infrastructure.Services.Abstractions;
 using KinoDev.DomainService.WebApi.Models;
-using KinoDev.Shared.DtoModels.Hall;
+using KinoDev.Shared.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,6 +21,7 @@ namespace KinoDev.DomainService.WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateHall([FromBody] CreateHallWithSeatsRequest request)
         {
+            // TODO: Add validation logic for the request model
             if (
                 request == null
                 || string.IsNullOrWhiteSpace(request.Name)
@@ -34,8 +35,9 @@ namespace KinoDev.DomainService.WebApi.Controllers
             var createdHall = await _hallsService.CreateHallAsync(request.Name, request.RowsCount, request.SeatsCount);
             if (createdHall == null)
             {
-                return StatusCode(500, "An error occurred while creating the hall.");
+                return BadRequest("Failed to create hall. Please check the provided data.");
             }
+
             return CreatedAtAction(nameof(CreateHall), createdHall);
         }
 
@@ -43,7 +45,7 @@ namespace KinoDev.DomainService.WebApi.Controllers
         public async Task<IActionResult> GetHallsAsync()
         {
             var halls = await _hallsService.GetAllHallsAsync();
-            if (halls == null || !halls.Any())
+            if (halls.IsNullOrEmptyCollection())
             {
                 return NotFound("No halls found.");
             }

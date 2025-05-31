@@ -1,8 +1,8 @@
-﻿using KinoDev.DomainService.Infrastructure.Services;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using KinoDev.Shared.Extensions;
 using KinoDev.Shared.DtoModels.Movies;
+using KinoDev.DomainService.Infrastructure.Services.Abstractions;
 
 namespace KinoDev.DomainService.WebApi.Controllers
 {
@@ -42,12 +42,16 @@ namespace KinoDev.DomainService.WebApi.Controllers
             }
 
             var createdMovie = await _movieService.CreateAsync(movieDto);
+            if (createdMovie == null)
+            {
+                return BadRequest("Failed to create movie. Please check the provided data.");
+            }
 
             return CreatedAtAction(nameof(CreateMovie), createdMovie);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetMovieById(int id)
+        public async Task<IActionResult> GetMovieById([FromRoute] int id)
         {
             var movie = await _movieService.GetByIdAsync(id);
             if (movie == null)

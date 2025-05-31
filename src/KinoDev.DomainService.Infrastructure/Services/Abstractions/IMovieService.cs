@@ -8,8 +8,6 @@ namespace KinoDev.DomainService.Infrastructure.Services.Abstractions
         Task<MovieDto> GetByIdAsync(int id);
         Task<IEnumerable<MovieDto>> GetAllAsync();
         Task<MovieDto> CreateAsync(MovieDto movieDto);
-        Task<MovieDto> UpdateAsync(int id, MovieDto movieDto);
-        Task<bool> DeleteAsync(int id);
         Task<IEnumerable<ShowingMovie>> GetShowingMoviesAsync(DateTime date);
     }
 }

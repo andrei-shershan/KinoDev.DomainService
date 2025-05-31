@@ -1,5 +1,4 @@
 ﻿using KinoDev.DomainService.Domain.Context;
-using KinoDev.DomainService.Domain.DomainsModels;
 using KinoDev.DomainService.Infrastructure.Mappers;
 using KinoDev.DomainService.Infrastructure.Services.Abstractions;
 using KinoDev.Shared.DtoModels.Movies;
@@ -19,14 +18,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
 
         public async Task<MovieDto> CreateAsync(MovieDto movieDto)
         {
-            var movie = new Movie
-            {
-                Name = movieDto.Name,
-                Description = movieDto.Description,
-                ReleaseDate = movieDto.ReleaseDate,
-                Duration = movieDto.Duration,
-                Url = movieDto.Url
-            };
+            var movie = movieDto.ToDomainModel();
 
             await _dbContext.Movies.AddAsync(movie);
             await _dbContext.SaveChangesAsync();
@@ -34,13 +26,9 @@ namespace KinoDev.DomainService.Infrastructure.Services
             return movie.ToDto();
         }
 
-        public Task<bool> DeleteAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<IEnumerable<MovieDto>> GetAllAsync()
         {
+            // TODO: Add Pagination
             var movies = await _dbContext.Movies.ToListAsync();
             return movies.Select(x => x.ToDto());
         }
@@ -49,11 +37,6 @@ namespace KinoDev.DomainService.Infrastructure.Services
         {
             var movie = await _dbContext.Movies.FindAsync(id);
             return movie?.ToDto();
-        }
-
-        public IEnumerable<Movie> GetMovies()
-        {
-            throw new NotImplementedException();
         }
 
         public async Task<IEnumerable<ShowingMovie>> GetShowingMoviesAsync(DateTime date)
@@ -98,11 +81,6 @@ namespace KinoDev.DomainService.Infrastructure.Services
             }
 
             return result;
-        }
-
-        public Task<MovieDto> UpdateAsync(int id, MovieDto movieDto)
-        {
-            throw new NotImplementedException();
         }
     }
 }

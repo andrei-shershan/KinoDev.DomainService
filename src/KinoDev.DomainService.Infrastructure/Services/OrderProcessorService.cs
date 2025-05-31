@@ -2,7 +2,6 @@ using KinoDev.DomainService.Infrastructure.ConfigurationModels;
 using KinoDev.DomainService.Infrastructure.Services.Abstractions;
 using KinoDev.Shared.DtoModels.Orders;
 using KinoDev.Shared.Services;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace KinoDev.DomainService.Infrastructure.Services
@@ -12,18 +11,15 @@ namespace KinoDev.DomainService.Infrastructure.Services
         private readonly IMessageBrokerService _messageBrokerService;
         private readonly MessageBrokerSettings _messageBrokerSettings;
         private readonly IOrderService _orderService;
-        private readonly ILogger<OrderProcessorService> _logger;
 
         public OrderProcessorService(
             IMessageBrokerService messageBrokerService,
             IOptions<MessageBrokerSettings> messageBrokerSettings,
-            IOrderService orderService,
-            ILogger<OrderProcessorService> logger)
+            IOrderService orderService)
         {
             _messageBrokerService = messageBrokerService;
             _messageBrokerSettings = messageBrokerSettings.Value;
             _orderService = orderService;
-            _logger = logger;
         }
 
         public async Task ProcessOrderEmail(OrderSummary orderSummary)
@@ -37,8 +33,6 @@ namespace KinoDev.DomainService.Infrastructure.Services
 
             // We need to set the file URL in the order summary
             orderSummary.FileUrl = orderSummary.FileUrl;
-
-            _logger.LogInformation("Order file URL updated successfully for order ID: {OrderId}", orderSummary.Id);
 
             await _messageBrokerService.PublishAsync(
                 orderSummary,

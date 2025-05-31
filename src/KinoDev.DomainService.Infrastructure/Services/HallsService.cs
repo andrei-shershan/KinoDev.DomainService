@@ -3,12 +3,12 @@ using KinoDev.DomainService.Domain.DomainsModels;
 using KinoDev.DomainService.Infrastructure.Services.Abstractions;
 using KinoDev.Shared.DtoModels.Hall;
 using KinoDev.Shared.DtoModels.Seats;
+using KinoDev.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace KinoDev.DomainService.Infrastructure.Services
 {
-
     public class HallsService : IHallsService
     {
         private readonly KinoDevDbContext _context;
@@ -25,63 +25,42 @@ namespace KinoDev.DomainService.Infrastructure.Services
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
-            var hall = new Hall()
-            {
-                Name = hallName
-            };
-
             try
             {
+                var hall = new Hall()
+                {
+                    Name = hallName
+                };
                 await _context.Halls.AddAsync(hall);
                 await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while creating hall.");
-                await transaction.RollbackAsync();
-                return null;
-            }
 
-            var seats = new List<Seat>();
-            for (int row = 1; row <= rowsCount; row++)
-            {
-                for (int seatNumber = 1; seatNumber <= seatsCount; seatNumber++)
+                var seats = new List<Seat>();
+                for (int row = 1; row <= rowsCount; row++)
                 {
-                    seats.Add(new Seat
+                    for (int seatNumber = 1; seatNumber <= seatsCount; seatNumber++)
                     {
-                        Row = row,
-                        Number = seatNumber,
-                        HallId = hall.Id
-                    });
+                        seats.Add(new Seat
+                        {
+                            Row = row,
+                            Number = seatNumber,
+                            HallId = hall.Id
+                        });
+                    }
                 }
-            }
 
-            try
-            {
                 await _context.Seats.AddRangeAsync(seats);
                 await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                return GetHallSummary(hall, seats);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while adding seats to hall.");
+                _logger.LogError(ex, "Error while creatin hall with name {HallName}", hallName);
                 await transaction.RollbackAsync();
                 return null;
             }
-
-            await transaction.CommitAsync();
-
-            return new HallSummary
-            {
-                Id = hall.Id,
-                Name = hall.Name,
-                Seats = seats.Select(s => new SeatDto
-                {
-                    Id = s.Id,
-                    Row = s.Row,
-                    Number = s.Number,
-                    HallId = s.HallId,
-                }).ToList(),
-            };
         }
 
         public async Task<IEnumerable<HallSummary>> GetAllHallsAsync()
@@ -90,24 +69,13 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 .Include(h => h.ShowTimes)
                 .ToListAsync();
 
-            if (hallsWithSeats == null || !hallsWithSeats.Any())
+            if (hallsWithSeats.IsNullOrEmptyCollection())
             {
                 _logger.LogWarning("No halls found in the database.");
                 return null;
             }
 
-            return hallsWithSeats.Select(h => new HallSummary
-            {
-                Id = h.Id,
-                Name = h.Name,
-                Seats = h.Seats.Select(s => new SeatDto
-                {
-                    Id = s.Id,
-                    Row = s.Row,
-                    Number = s.Number,
-                    HallId = s.HallId,
-                }).ToList(),
-            });
+            return hallsWithSeats.Select(h => GetHallSummary(h, h.Seats));
         }
 
         public async Task<HallSummary> GetHallByIdAsync(int hallId)
@@ -123,17 +91,22 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 return null;
             }
 
+            return GetHallSummary(hallWithSeats, hallWithSeats.Seats);
+        }
+
+        private HallSummary GetHallSummary(Hall hall, IEnumerable<Seat> seats)
+        {
             return new HallSummary
             {
-                Id = hallWithSeats.Id,
-                Name = hallWithSeats.Name,
-                Seats = hallWithSeats.Seats.Select(s => new SeatDto
+                Id = hall.Id,
+                Name = hall.Name,
+                Seats = seats.Select(s => new SeatDto
                 {
                     Id = s.Id,
                     Row = s.Row,
                     Number = s.Number,
                     HallId = s.HallId,
-                }).ToList(),
+                })
             };
         }
     }

@@ -1,8 +1,6 @@
-
 using KinoDev.DomainService.Domain.Extensions;
 using KinoDev.DomainService.Infrastructure.ConfigurationModels;
 using KinoDev.DomainService.Infrastructure.Extensions;
-using KinoDev.DomainService.Infrastructure.Models;
 using KinoDev.DomainService.WebApi.ConfigurationSettings;
 using KinoDev.DomainService.WebApi.SetupExtensions;
 using KinoDev.Shared.Models;
@@ -49,18 +47,6 @@ namespace KinoDev.DomainService.WebApi
             builder.Services.InitializeInfrastructure(ignoreHostedService);
             builder.Services.SetupAuthentication(authenticationSettings);
 
-            // CORS
-            builder.Services.AddCors(options =>
-            {
-                options.AddDefaultPolicy(policy =>
-                {
-                    policy.AllowAnyOrigin()
-                        .AllowAnyMethod()
-                        .AllowAnyHeader();
-                    // .AllowCredentials();
-                });
-            });
-
             var app = builder.Build();
 
             if (app.Environment.IsDevelopment())
@@ -76,8 +62,6 @@ namespace KinoDev.DomainService.WebApi
             }
 
             app.UseRouting();
-
-            app.UseCors();
 
             app.UseAuthentication();
             app.UseAuthorization();
