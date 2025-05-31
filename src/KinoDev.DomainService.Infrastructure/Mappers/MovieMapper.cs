@@ -7,20 +7,20 @@ namespace KinoDev.DomainService.Infrastructure.Mappers
     {
         public static MovieDto ToDto(this Movie movie)
         {
-            if (movie != null)
+            if (movie == null)
             {
-                return new MovieDto()
-                {
-                    Description = movie.Description,
-                    Duration = movie.Duration,
-                    Id = movie.Id,
-                    Name = movie.Name,
-                    ReleaseDate = movie.ReleaseDate,
-                    Url = movie.Url,
-                };
+                return null;
             }
-
-            return null;
+            
+            return new MovieDto()
+            {
+                Description = movie.Description,
+                Duration = movie.Duration,
+                Id = movie.Id,
+                Name = movie.Name,
+                ReleaseDate = movie.ReleaseDate,
+                Url = movie.Url,
+            };
         }
     }
 }

@@ -2,7 +2,6 @@
 using KinoDev.DomainService.Domain.DomainsModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System.Reflection.Emit;
 
 namespace KinoDev.DomainService.Domain.Context
 {
@@ -75,7 +74,6 @@ namespace KinoDev.DomainService.Domain.Context
         {
             OnGuidModelCreate(builder);
         }
-
 
         private void OnGuidModelCreate<T>(EntityTypeBuilder<T> builder) where T : BaseGuidEntity
         {

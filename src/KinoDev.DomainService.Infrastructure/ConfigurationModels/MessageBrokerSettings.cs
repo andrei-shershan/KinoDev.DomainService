@@ -1,4 +1,4 @@
-namespace KinoDev.DomainService.Infrastructure.Models
+namespace KinoDev.DomainService.Infrastructure.ConfigurationModels
 {
     public class MessageBrokerSettings
     {

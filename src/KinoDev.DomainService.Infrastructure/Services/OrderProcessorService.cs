@@ -1,4 +1,4 @@
-using KinoDev.DomainService.Infrastructure.Models;
+using KinoDev.DomainService.Infrastructure.ConfigurationModels;
 using KinoDev.Shared.DtoModels.Orders;
 using KinoDev.Shared.Services;
 using Microsoft.Extensions.Logging;

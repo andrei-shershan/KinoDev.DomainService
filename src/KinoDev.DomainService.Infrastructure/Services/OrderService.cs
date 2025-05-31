@@ -1,6 +1,5 @@
 using KinoDev.DomainService.Domain.Context;
 using KinoDev.DomainService.Domain.DomainsModels;
-using KinoDev.DomainService.Infrastructure.Helpers;
 using KinoDev.DomainService.Infrastructure.Models;
 using KinoDev.Shared.DtoModels.Hall;
 using KinoDev.Shared.DtoModels.Movies;
