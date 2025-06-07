@@ -1,7 +1,8 @@
+using System.Text;
 using KinoDev.DomainService.Infrastructure.ConfigurationModels;
 using KinoDev.DomainService.Infrastructure.Services.Abstractions;
 using KinoDev.Shared.DtoModels.Orders;
-using KinoDev.Shared.Services;
+using KinoDev.Shared.Services.Abstractions;
 using Microsoft.Extensions.Options;
 
 namespace KinoDev.DomainService.Infrastructure.Services
@@ -34,9 +35,10 @@ namespace KinoDev.DomainService.Infrastructure.Services
             // We need to set the file URL in the order summary
             orderSummary.FileUrl = orderSummary.FileUrl;
 
-            await _messageBrokerService.PublishAsync(
-                orderSummary,
-                _messageBrokerSettings.Topics.OrderFileUrlAdded
+            await _messageBrokerService.SendMessageAsync
+            (
+                _messageBrokerSettings.Queues.OrderFileUrlAdded,
+                orderSummary
             );
         }
     }
