@@ -1,6 +1,7 @@
 ﻿using KinoDev.DomainService.Infrastructure.Services;
 using KinoDev.DomainService.Infrastructure.Services.Abstractions;
 using KinoDev.Shared.Services;
+using KinoDev.Shared.Services.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace KinoDev.DomainService.Infrastructure.Extensions

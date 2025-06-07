@@ -20,10 +20,10 @@ namespace KinoDev.DomainService.Domain.Extensions
                     connectionString,
                     ServerVersion.AutoDetect(connectionString),
                     sql => sql.MigrationsAssembly(migrationAssembly)
-                )
+                );
                 // TODO: Allow it for local development only
-                .EnableSensitiveDataLogging(logSensitiveData)
-                .LogTo(Console.WriteLine, LogLevel.Debug);
+                // .EnableSensitiveDataLogging(logSensitiveData)
+                // .LogTo(Console.WriteLine, LogLevel.Debug);
             });
 
             return services;

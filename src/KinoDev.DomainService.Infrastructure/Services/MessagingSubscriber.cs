@@ -2,7 +2,7 @@ using System.Text.Json;
 using KinoDev.DomainService.Infrastructure.ConfigurationModels;
 using KinoDev.DomainService.Infrastructure.Services.Abstractions;
 using KinoDev.Shared.DtoModels.Orders;
-using KinoDev.Shared.Services;
+using KinoDev.Shared.Services.Abstractions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -34,43 +34,20 @@ namespace KinoDev.DomainService.Infrastructure.Services
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _messageBrokerService.SubscribeAsync(
-                _messageBrokerSettings.Topics.OrderFileCreated,
+            _messageBrokerService.SubscribeAsync<OrderSummary>(
                 _messageBrokerSettings.Queues.OrderFileCreated,
-                async (message) =>
+                async (orderSummary) =>
             {
-                try
-                {
-                    _logger.LogInformation("Received order completed message: {Message}", message);
-                    var orderSummary = JsonSerializer.Deserialize<OrderSummary>(message);
-
-                    await _orderProcessorService.ProcessOrderFileUrl(orderSummary);
-                    _logger.LogInformation("Order file URL processed successfully for order ID: {OrderId}", orderSummary.Id);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error updating order status for order");
-                }
+                await _orderProcessorService.ProcessOrderFileUrl(orderSummary);
             });
 
-            _messageBrokerService.SubscribeAsync(
-                _messageBrokerSettings.Topics.EmailSent,
+            _messageBrokerService.SubscribeAsync<OrderSummary>(
                 _messageBrokerSettings.Queues.EmailSent,
-                async (message) =>
+                async (orderSummary) =>
             {
-                try
-                {
-                    _logger.LogInformation("Received order completed message: {Message}", message);
-                    var orderSummary = JsonSerializer.Deserialize<OrderSummary>(message);
-
-                    await _orderProcessorService.ProcessOrderEmail(orderSummary);
-                    _logger.LogInformation("Order email processed successfully for order ID: {OrderId}", orderSummary.Id);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error updating order status for order");
-                }
+                await _orderProcessorService.ProcessOrderEmail(orderSummary);
             });
+
 
             return Task.CompletedTask;
         }
