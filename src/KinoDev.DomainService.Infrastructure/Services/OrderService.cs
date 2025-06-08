@@ -296,13 +296,13 @@ namespace KinoDev.DomainService.Infrastructure.Services
             return true;
         }
 
-        public Task<bool> SetFileUrl(Guid id, string fileUrl)
+        public async Task<bool> SetFileUrl(Guid id, string fileUrl)
         {
-            var dbOrder = _dbContext.Orders.FirstOrDefault(x => x.Id == id);
+            var dbOrder = await _dbContext.Orders.FirstOrDefaultAsync(x => x.Id == id);
             if (dbOrder == null)
             {
                 _logger.LogError($"Order with ID {id} not found.");
-                return Task.FromResult(false);
+                return false;
             }
 
             dbOrder.FileUrl = fileUrl;
@@ -310,10 +310,12 @@ namespace KinoDev.DomainService.Infrastructure.Services
             if (dbUpdateResult?.State != EntityState.Modified)
             {
                 _logger.LogError($"Failed to update order with ID {id}.");
-                return Task.FromResult(false);
+                return false;
             }
 
-            return Task.FromResult(true);
+            await _dbContext.SaveChangesAsync();
+
+            return true;
         }
 
         public async Task<OrderDto> UpdateOrderEmailAsync(Guid id, string email)

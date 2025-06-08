@@ -38,14 +38,28 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 _messageBrokerSettings.Queues.OrderFileCreated,
                 async (orderSummary) =>
             {
-                await _orderProcessorService.ProcessOrderFileUrl(orderSummary);
+                try
+                {
+                    await _orderProcessorService.ProcessOrderFileUrl(orderSummary);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error processing order file URL for order {OrderId}", orderSummary.Id);
+                }
             });
 
             _messageBrokerService.SubscribeAsync<OrderSummary>(
                 _messageBrokerSettings.Queues.EmailSent,
                 async (orderSummary) =>
             {
-                await _orderProcessorService.ProcessOrderEmail(orderSummary);
+                try
+                {
+                    await _orderProcessorService.ProcessOrderEmail(orderSummary);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error processing order email for order {OrderId}", orderSummary.Id);
+                }
             });
 
 
