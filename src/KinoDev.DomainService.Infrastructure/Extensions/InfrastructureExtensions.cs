@@ -44,8 +44,7 @@ namespace KinoDev.DomainService.Infrastructure.Extensions
             // Register the messaging subscriber as a hosted service if not ignored
             if (!ignoreHostedService)
             {
-                services.AddHostedService<MessagingOrderFileCreatedSubscriber>();
-                // services.AddHostedService<MessagingEmailSentSubscriber>();
+                services.AddHostedService<MessagingSubscriber>();
             }
 
             return services;
