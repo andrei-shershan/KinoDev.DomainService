@@ -26,25 +26,30 @@ namespace KinoDev.DomainService.WebApi
 
             var connectionString = builder.Configuration.GetConnectionString("Kinodev");
             var rabbitMq = builder.Configuration.GetSection("RabbitMQ");
+            var azureServiceBus = builder.Configuration.GetSection("AzureServiceBus");
             var messageBrokerSettings = builder.Configuration.GetSection("MessageBroker").Get<MessageBrokerSettings>();
             var domainDbSettings = builder.Configuration.GetSection("DomainDbSettings").Get<DomainDbSettings>();
             var ignoreHostedService = builder.Configuration.GetValue<bool>("IgnoreHostedService");
             var authenticationSettings = builder.Configuration.GetSection("Authentication").Get<AuthenticationSettings>();
 
             if (string.IsNullOrWhiteSpace(connectionString)
-            || messageBrokerSettings == null
-            || rabbitMq == null
             || domainDbSettings == null
             || authenticationSettings == null)
             {
                 throw new InvalidConfigurationException("Unable to obtain required settings from configuration!");
             }
 
+            if (rabbitMq == null && azureServiceBus == null)
+            {
+                throw new InvalidConfigurationException("RabbitMqSettings or AzureServiceBusSettings must be set in the configuration!");
+            }
+
             builder.Services.Configure<RabbitMqSettings>(builder.Configuration.GetSection("RabbitMq"));
+            builder.Services.Configure<AzureServiceBusSettings>(builder.Configuration.GetSection("AzureServiceBus"));
             builder.Services.Configure<MessageBrokerSettings>(builder.Configuration.GetSection("MessageBroker"));
 
             builder.Services.InitializeDomain(connectionString, domainDbSettings.MigrationAssembly, domainDbSettings.LogSensitiveData);
-            builder.Services.InitializeInfrastructure(ignoreHostedService);
+            builder.Services.InitializeInfrastructure(builder.Configuration, ignoreHostedService);
             builder.Services.SetupAuthentication(authenticationSettings);
 
             var app = builder.Build();

@@ -2,13 +2,18 @@
 using KinoDev.DomainService.Infrastructure.Services.Abstractions;
 using KinoDev.Shared.Services;
 using KinoDev.Shared.Services.Abstractions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace KinoDev.DomainService.Infrastructure.Extensions
 {
     public static class InfrastructureExtensions
     {
-        public static IServiceCollection InitializeInfrastructure(this IServiceCollection services, bool ignoreHostedService = false)
+        public static IServiceCollection InitializeInfrastructure(
+            this IServiceCollection services,
+            IConfiguration configuration,
+            bool ignoreHostedService = false
+            )
         {
             // Infrastructure services
             services.AddTransient<IMovieService, MovieService>();
@@ -22,7 +27,19 @@ namespace KinoDev.DomainService.Infrastructure.Extensions
             services.AddTransient<IDateTimeService, DateTimeService>();
 
             // Messaging services
-            services.AddTransient<IMessageBrokerService, RabbitMQService>();
+            var messageBrokerName = configuration.GetValue<string>("MessageBrokerName");
+            if (messageBrokerName == "RabbitMQ")
+            {
+                services.AddTransient<IMessageBrokerService, RabbitMQService>();
+            }
+            else if (messageBrokerName == "AzureServiceBus")
+            {
+                services.AddTransient<IMessageBrokerService, AzureServiceBusService>();
+            }
+            else
+            {
+                throw new InvalidOperationException("Invalid MessageBrokerName configuration value.");
+            }
 
             // Register the messaging subscriber as a hosted service if not ignored
             if (!ignoreHostedService)

@@ -1,4 +1,3 @@
-using System.Text.Json;
 using KinoDev.DomainService.Infrastructure.ConfigurationModels;
 using KinoDev.DomainService.Infrastructure.Services.Abstractions;
 using KinoDev.Shared.DtoModels.Orders;
@@ -13,7 +12,6 @@ namespace KinoDev.DomainService.Infrastructure.Services
     {
         private readonly IMessageBrokerService _messageBrokerService;
         private readonly MessageBrokerSettings _messageBrokerSettings;
-        private readonly IOrderService _orderService;
         private readonly ILogger<MessagingSubscriber> _logger;
 
         private readonly IOrderProcessorService _orderProcessorService;
@@ -21,13 +19,11 @@ namespace KinoDev.DomainService.Infrastructure.Services
         public MessagingSubscriber(
             IMessageBrokerService messageBrokerService,
             IOptions<MessageBrokerSettings> messageBrokerSettings,
-            IOrderService orderService,
             ILogger<MessagingSubscriber> logger,
             IOrderProcessorService orderProcessorService)
         {
             _messageBrokerService = messageBrokerService;
             _messageBrokerSettings = messageBrokerSettings.Value;
-            _orderService = orderService;
             _logger = logger;
             _orderProcessorService = orderProcessorService;
         }
@@ -40,6 +36,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
             {
                 try
                 {
+                    _logger.LogInformation("Processing order file URL for order {OrderId}", orderSummary.Id);
                     await _orderProcessorService.ProcessOrderFileUrl(orderSummary);
                 }
                 catch (Exception ex)
@@ -54,6 +51,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
             {
                 try
                 {
+                    _logger.LogInformation("Processing order email for order {OrderId}", orderSummary.Id);
                     await _orderProcessorService.ProcessOrderEmail(orderSummary);
                 }
                 catch (Exception ex)
@@ -61,7 +59,6 @@ namespace KinoDev.DomainService.Infrastructure.Services
                     _logger.LogError(ex, "Error processing order email for order {OrderId}", orderSummary.Id);
                 }
             });
-
 
             return Task.CompletedTask;
         }
