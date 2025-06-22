@@ -79,5 +79,12 @@ namespace KinoDev.DomainService.WebApi.Controllers
 
             return Ok(movies);
         }
+
+        [AllowAnonymous]
+        [HttpGet("test")]
+        public IActionResult Test()
+        {
+            return Ok($"Test successful, {DateTime.UtcNow} UTC");
+        }
     }
 }
