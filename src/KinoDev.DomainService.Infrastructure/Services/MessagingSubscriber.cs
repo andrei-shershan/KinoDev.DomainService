@@ -37,6 +37,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 try
                 {
                     _logger.LogInformation("Processing order file URL for order {OrderId}", orderSummary.Id);
+                    _logger.LogInformation("File URL: {FileUrl}", orderSummary.FileUrl);
                     await _orderProcessorService.ProcessOrderFileUrl(orderSummary);
                 }
                 catch (Exception ex)

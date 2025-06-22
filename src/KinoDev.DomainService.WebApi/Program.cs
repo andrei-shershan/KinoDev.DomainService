@@ -48,7 +48,23 @@ namespace KinoDev.DomainService.WebApi
             builder.Services.Configure<AzureServiceBusSettings>(builder.Configuration.GetSection("AzureServiceBus"));
             builder.Services.Configure<MessageBrokerSettings>(builder.Configuration.GetSection("MessageBroker"));
 
-            builder.Services.InitializeDomain(connectionString, domainDbSettings.MigrationAssembly, domainDbSettings.LogSensitiveData);
+            var inMemoryDbSettings = builder.Configuration.GetSection("InMemoryDb").Get<InMemoryDbSettings>();
+            if (inMemoryDbSettings == null)
+            {
+                throw new InvalidConfigurationException("InMemoryDbSettings must be set in the configuration!");
+            }
+
+            builder.Services.Configure<InMemoryDbSettings>(builder.Configuration.GetSection("InMemoryDb"));
+            Console.WriteLine($"InMemoryDbSettings: {inMemoryDbSettings.Enabled}, {inMemoryDbSettings.DatabaseName}");
+
+            builder.Services.InitializeDomain(
+                connectionString,
+                domainDbSettings.MigrationAssembly,
+                inMemoryDbSettings.Enabled,
+                inMemoryDbSettings.DatabaseName,
+                domainDbSettings.LogSensitiveData
+            );
+
             builder.Services.InitializeInfrastructure(builder.Configuration, ignoreHostedService);
             builder.Services.SetupAuthentication(authenticationSettings);
 
