@@ -1,24 +1,27 @@
 using KinoDev.DomainService.Domain.Context;
 using KinoDev.DomainService.Domain.DomainsModels;
+using KinoDev.DomainService.Infrastructure.ConfigurationModels;
 using KinoDev.DomainService.Infrastructure.Mappers;
 using KinoDev.DomainService.Infrastructure.Models;
 using KinoDev.DomainService.Infrastructure.Services.Abstractions;
-using KinoDev.Shared.DtoModels.Hall;
-using KinoDev.Shared.DtoModels.Movies;
 using KinoDev.Shared.DtoModels.ShowTimes;
 using KinoDev.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace KinoDev.DomainService.Infrastructure.Services
 {
-    public class ShowTimesService : IShowTimesService
+    public class ShowTimesService : TransactionService, IShowTimesService
     {
         private readonly KinoDevDbContext _dbContext;
 
         private ILogger<ShowTimesService> _logger;
 
-        public ShowTimesService(KinoDevDbContext dbContext, ILogger<ShowTimesService> logger)
+        public ShowTimesService(
+            KinoDevDbContext dbContext,
+            ILogger<ShowTimesService> logger,
+            IOptions<InMemoryDbSettings> inMemoryDbSettings) : base(inMemoryDbSettings)
         {
             _dbContext = dbContext;
             _logger = logger;
@@ -26,7 +29,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
 
         public async Task<bool> CreateAsync(CreateShowTimeRequest request)
         {
-            using var transaction = await _dbContext.Database.BeginTransactionAsync();
+            using var transaction = await BeginTransactionAsync(_dbContext);
             try
             {
                 var movie = await _dbContext.Movies.FindAsync(request.MovieId);
@@ -54,13 +57,13 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 await _dbContext.ShowTimes.AddAsync(showTime);
                 await _dbContext.SaveChangesAsync();
 
-                await transaction.CommitAsync();
+                await CommitTransactionAsync(transaction);
                 return true;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while creating show time.");
-                await transaction.RollbackAsync();
+                await RollbackTransactionAsync(transaction);
                 return false;
             }
         }

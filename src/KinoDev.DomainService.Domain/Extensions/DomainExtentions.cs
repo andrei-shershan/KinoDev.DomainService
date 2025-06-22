@@ -11,19 +11,32 @@ namespace KinoDev.DomainService.Domain.Extensions
             this IServiceCollection services,
             string connectionString,
             string migrationAssembly,
+            bool useInMemoryDb = false,
+            string? inMemoryDatabaseName = null,
             bool logSensitiveData = false
         )
         {
-            services.AddDbContext<KinoDevDbContext>(options =>
+            if (useInMemoryDb && !string.IsNullOrWhiteSpace(inMemoryDatabaseName))
             {
-                options.UseMySql(
-                    connectionString,
-                    ServerVersion.AutoDetect(connectionString),
-                    sql => sql.MigrationsAssembly(migrationAssembly)
-                )
-                .EnableSensitiveDataLogging(logSensitiveData)
-                .LogTo(Console.WriteLine, LogLevel.None);
-            });
+                // Use InMemory database
+                services.AddDbContext<KinoDevDbContext>(options =>
+                {
+                    options.UseInMemoryDatabase(inMemoryDatabaseName);
+                });
+            }
+            else
+            {
+                services.AddDbContext<KinoDevDbContext>(options =>
+                {
+                    options.UseMySql(
+                        connectionString,
+                        ServerVersion.AutoDetect(connectionString),
+                        sql => sql.MigrationsAssembly(migrationAssembly)
+                    )
+                    .EnableSensitiveDataLogging(logSensitiveData)
+                    .LogTo(Console.WriteLine, LogLevel.None);
+                });
+            }
 
             return services;
         }

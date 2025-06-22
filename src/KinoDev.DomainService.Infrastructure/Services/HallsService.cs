@@ -1,29 +1,35 @@
 using KinoDev.DomainService.Domain.Context;
 using KinoDev.DomainService.Domain.DomainsModels;
+using KinoDev.DomainService.Infrastructure.ConfigurationModels;
 using KinoDev.DomainService.Infrastructure.Services.Abstractions;
 using KinoDev.Shared.DtoModels.Hall;
 using KinoDev.Shared.DtoModels.Seats;
 using KinoDev.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace KinoDev.DomainService.Infrastructure.Services
 {
-    public class HallsService : IHallsService
+    public class HallsService : TransactionService, IHallsService
     {
         private readonly KinoDevDbContext _context;
 
         private readonly ILogger<HallsService> _logger;
 
-        public HallsService(KinoDevDbContext context, ILogger<HallsService> logger)
+        public HallsService(
+            KinoDevDbContext context,
+            ILogger<HallsService> logger,
+            IOptions<InMemoryDbSettings> inMemoryDbSettings) : base(inMemoryDbSettings)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+
         public async Task<HallSummary> CreateHallAsync(string hallName, int rowsCount, int seatsCount)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            using var transaction = await BeginTransactionAsync(_context);
 
             try
             {
@@ -51,14 +57,14 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 await _context.Seats.AddRangeAsync(seats);
                 await _context.SaveChangesAsync();
 
-                await transaction.CommitAsync();
+                await CommitTransactionAsync(transaction);
 
                 return GetHallSummary(hall, seats);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creatin hall with name {HallName}", hallName);
-                await transaction.RollbackAsync();
+                await RollbackTransactionAsync(transaction);
                 return null;
             }
         }

@@ -1,26 +1,29 @@
 using KinoDev.DomainService.Domain.Context;
 using KinoDev.DomainService.Domain.DomainsModels;
+using KinoDev.DomainService.Infrastructure.ConfigurationModels;
 using KinoDev.DomainService.Infrastructure.Mappers;
 using KinoDev.DomainService.Infrastructure.Models;
 using KinoDev.DomainService.Infrastructure.Services.Abstractions;
-using KinoDev.Shared.DtoModels.Hall;
-using KinoDev.Shared.DtoModels.Movies;
 using KinoDev.Shared.DtoModels.Orders;
 using KinoDev.Shared.DtoModels.ShowTimes;
 using KinoDev.Shared.DtoModels.Tickets;
 using KinoDev.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace KinoDev.DomainService.Infrastructure.Services
 {
-    public class OrderService : IOrderService
+    public class OrderService : TransactionService, IOrderService
     {
         private readonly KinoDevDbContext _dbContext;
 
         private readonly ILogger<OrderService> _logger;
 
-        public OrderService(KinoDevDbContext dbContext, ILogger<OrderService> logger)
+        public OrderService(
+            KinoDevDbContext dbContext,
+            ILogger<OrderService> logger,
+            IOptions<InMemoryDbSettings> inMemoryDbSettings) : base(inMemoryDbSettings)
         {
             _dbContext = dbContext;
             _logger = logger;
@@ -73,7 +76,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
 
             var orderCost = dbShowTime.Price * orderModel.SelectedSeatIds.Count();
 
-            using var transaction = await _dbContext.Database.BeginTransactionAsync();
+            using var transaction = await BeginTransactionAsync(_dbContext);
             try
             {
                 var id = Guid.NewGuid();
@@ -91,7 +94,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 var dbAddOrderResult = await _dbContext.Orders.AddAsync(order);
                 if (dbAddOrderResult?.State != EntityState.Added)
                 {
-                    await transaction.RollbackAsync();
+                    await RollbackTransactionAsync(transaction);
                     _logger.LogError($"Failed to add order for ShowTime ID {orderModel.ShowTimeId}.");
                     return null;
                 }
@@ -116,13 +119,13 @@ namespace KinoDev.DomainService.Infrastructure.Services
 
                 await _dbContext.SaveChangesAsync();
 
-                await transaction.CommitAsync();
+                await CommitTransactionAsync(transaction);
 
                 return GetOrderSummary(dbAddOrderResult.Entity, dbShowTime, dbTickets);
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
+                await RollbackTransactionAsync(transaction);
                 _logger.LogError($"Failed to create order for ShowTime ID {orderModel.ShowTimeId}: {ex.Message}");
                 return null;
             }
@@ -137,7 +140,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 return true;
             }
 
-            using var transaction = await _dbContext.Database.BeginTransactionAsync();
+            using var transaction = await BeginTransactionAsync(_dbContext);
             try
             {
                 // Delete related tickets first
@@ -148,13 +151,13 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 _dbContext.Orders.Remove(order);
 
                 await _dbContext.SaveChangesAsync();
-                await transaction.CommitAsync();
+                await CommitTransactionAsync(transaction);
 
                 return true;
             }
             catch
             {
-                await transaction.RollbackAsync();
+                await RollbackTransactionAsync(transaction);
                 _logger.LogError($"Failed to delete order with ID {id}.");
                 return false;
             }
