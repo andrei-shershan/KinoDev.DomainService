@@ -71,10 +71,11 @@ stages:
             testRunTitle: 'VSTest Results'
 
         - task: PublishBuildArtifacts@1
-          displayName: 'Publish Build Artifacts'
+          displayName: 'Publish build artifacts'
           inputs:
-            pathToPublish: '$(Build.ArtifactStagingDirectory)'
-            artifactName: 'drop'
+            PathtoPublish: '$(Build.ArtifactStagingDirectory)/app'
+            ArtifactName: 'app'
+            publishLocation: 'Container'
 
   - stage: Deploy
     displayName: 'Deploy to Azure'
