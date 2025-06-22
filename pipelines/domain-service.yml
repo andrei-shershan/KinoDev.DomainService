@@ -75,3 +75,32 @@ stages:
           inputs:
             pathToPublish: '$(Build.ArtifactStagingDirectory)'
             artifactName: 'drop'
+
+  - stage: Deploy
+    displayName: 'Deploy to Azure'
+    dependsOn: Build_and_Test
+    condition: succeeded('Build_and_Test')
+    jobs:
+    - deployment: DeployToAzure
+      displayName: 'Deploy to Azure WebApp'
+      environment: kinodev-live
+      strategy:
+        runOnce:
+          deploy:    
+            steps:
+            - task: DownloadBuildArtifacts@1
+              displayName: 'Download build artifacts'
+              inputs:
+                buildType: 'current'
+                downloadType: 'single'
+                artifactName: 'app'
+                downloadPath: '$(System.ArtifactsDirectory)'
+                
+            - task: AzureWebApp@1
+              displayName: 'Deploy to Azure Web App'
+              inputs:
+                azureSubscription: '$(AZURE_SERVICE_CONNECTION)'
+                appType: 'webApp'
+                appName: '$(webAppName)'
+                package: '$(System.ArtifactsDirectory)/app/*.zip'
+                deploymentMethod: 'auto'
