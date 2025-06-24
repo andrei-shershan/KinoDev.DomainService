@@ -86,5 +86,11 @@ namespace KinoDev.DomainService.WebApi.Controllers
         {
             return Ok($"Test successful, {DateTime.UtcNow} UTC");
         }
+
+        [HttpGet("test2")]
+        public IActionResult Test2()
+        {
+            return Ok($"Test successful, {DateTime.UtcNow} UTC");
+        }
     }
 }
