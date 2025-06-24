@@ -92,5 +92,17 @@ namespace KinoDev.DomainService.WebApi.Controllers
         {
             return Ok($"Test successful, {DateTime.UtcNow} UTC");
         }
+
+        [AllowAnonymous]
+        [HttpGet("test3")]
+        public async Task<IActionResult> Test3()
+        {
+            var httpClient = new HttpClient();
+            var response = await httpClient.GetAsync("https://identity-service-a6ebetbsdvaqdceh.polandcentral-01.azurewebsites.net/api/authentication");
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            return Ok($"Test successful, {DateTime.UtcNow} UTC, Response: {content}");
+        }
     }
 }
