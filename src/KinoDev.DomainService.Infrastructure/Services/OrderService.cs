@@ -318,6 +318,8 @@ namespace KinoDev.DomainService.Infrastructure.Services
 
             await _dbContext.SaveChangesAsync();
 
+            _logger.LogInformation($"File URL for order {id} set to {fileUrl}.");
+
             return true;
         }
 
