@@ -30,16 +30,23 @@ namespace KinoDev.DomainService.Infrastructure.Services
 
         public async Task ProcessOrderFileUrl(OrderSummary orderSummary)
         {
-            await _orderService.SetFileUrl(orderSummary.Id, orderSummary.FileUrl);
+            var result = await _orderService.SetFileUrl(orderSummary.Id, orderSummary.FileUrl);
+            if (result)
+            {
+                // We need to set the file URL in the order summary
+                orderSummary.FileUrl = orderSummary.FileUrl;
 
-            // We need to set the file URL in the order summary
-            orderSummary.FileUrl = orderSummary.FileUrl;
-
-            await _messageBrokerService.SendMessageAsync
-            (
-                _messageBrokerSettings.Queues.OrderFileUrlAdded,
-                orderSummary
-            );
+                await _messageBrokerService.SendMessageAsync
+                (
+                    _messageBrokerSettings.Queues.OrderFileUrlAdded,
+                    orderSummary
+                );
+            }
+            else
+            {
+                // Log or handle the case where the file URL could not be set
+                throw new InvalidOperationException($"Failed to set file URL for order {orderSummary.Id}");
+            }
         }
     }
 }
