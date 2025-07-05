@@ -1,6 +1,7 @@
 using KinoDev.DomainService.Infrastructure.Models;
 using KinoDev.DomainService.Infrastructure.Services.Abstractions;
 using KinoDev.DomainService.WebApi.Models;
+using KinoDev.Shared.DtoModels.Orders;
 using KinoDev.Shared.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,9 +15,15 @@ namespace KinoDev.DomainService.WebApi.Controllers
     {
         private readonly IOrderService _orderServcie;
 
-        public OrdersController(IOrderService orderServcie)
+        private readonly IOrderProcessorService _orderProcessorService;
+
+        public OrdersController(
+            IOrderService orderServcie,
+            IOrderProcessorService orderProcessorService
+            )
         {
             _orderServcie = orderServcie;
+            _orderProcessorService = orderProcessorService;
         }
 
         [HttpGet("{id:guid}")]
@@ -114,6 +121,26 @@ namespace KinoDev.DomainService.WebApi.Controllers
             }
 
             return Ok(result);
+        }
+
+        //TODO: Add authentication and authorization to these endpoints
+        [AllowAnonymous]
+        [HttpPost("process-order-file-created")]
+        public async Task<IActionResult> ProcessOrderFileCreatedAsync([FromBody] OrderSummary orderSummary)
+        {
+            await _orderProcessorService.ProcessOrderFileUrl(orderSummary);
+
+            return Ok();
+        }
+
+        
+        [AllowAnonymous]
+        [HttpPost("process-email-sent")]
+        public async Task<IActionResult> ProcessEmailSentAsync([FromBody] OrderSummary orderSummary)
+        {
+            await _orderProcessorService.ProcessOrderEmail(orderSummary);
+
+            return Ok();
         }
     }
 }

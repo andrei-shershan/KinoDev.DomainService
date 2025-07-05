@@ -30,6 +30,7 @@ namespace KinoDev.DomainService.WebApi
             var messageBrokerSettings = builder.Configuration.GetSection("MessageBroker").Get<MessageBrokerSettings>();
             var domainDbSettings = builder.Configuration.GetSection("DomainDbSettings").Get<DomainDbSettings>();
             var ignoreHostedService = builder.Configuration.GetValue<bool>("IgnoreHostedService");
+            var useFunctionBrokerSubscription = builder.Configuration.GetValue<bool>("UseFunctionBrokerSubscription");
             var authenticationSettings = builder.Configuration.GetSection("Authentication").Get<AuthenticationSettings>();
 
             if (string.IsNullOrWhiteSpace(connectionString)
@@ -65,7 +66,7 @@ namespace KinoDev.DomainService.WebApi
                 domainDbSettings.LogSensitiveData
             );
 
-            builder.Services.InitializeInfrastructure(builder.Configuration, ignoreHostedService);
+            builder.Services.InitializeInfrastructure(builder.Configuration, ignoreHostedService || useFunctionBrokerSubscription);
             builder.Services.SetupAuthentication(authenticationSettings);
 
             var app = builder.Build();
