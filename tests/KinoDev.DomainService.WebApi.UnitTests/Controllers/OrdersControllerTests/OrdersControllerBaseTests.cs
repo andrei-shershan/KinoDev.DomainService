@@ -7,12 +7,14 @@ namespace KinoDev.DomainService.WebApi.UnitTests.Controllers.OrdersControllerTes
     public class OrdersControllerBaseTests
     {
         protected readonly Mock<IOrderService> _mockOrderService;
+        protected readonly Mock<IOrderProcessorService> _mockOrderProcessorService;
         protected readonly OrdersController _controller;
 
         public OrdersControllerBaseTests()
         {
             _mockOrderService = new Mock<IOrderService>();
-            _controller = new OrdersController(_mockOrderService.Object);
+            _mockOrderProcessorService = new Mock<IOrderProcessorService>();
+            _controller = new OrdersController(_mockOrderService.Object, _mockOrderProcessorService.Object);
         }
     }
 }
