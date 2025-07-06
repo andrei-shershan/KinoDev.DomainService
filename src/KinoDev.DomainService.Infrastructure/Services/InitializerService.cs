@@ -12,6 +12,8 @@ public class InitializerService : IHostedService
 
     private readonly IDistributedCache _distributedCache;
 
+    private const int DaysToExpire = 30;
+
     public InitializerService(
         KinoDevDbContext dbContext,
         IDistributedCache distributedCache
@@ -113,7 +115,6 @@ public class InitializerService : IHostedService
                 }
             }
         }
-
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
@@ -136,7 +137,7 @@ public class InitializerService : IHostedService
                 System.Text.Json.JsonSerializer.Serialize(adjustedMovies),
                 new DistributedCacheEntryOptions
                 {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(DaysToExpire)
                 },
                 cancellationToken
             );
@@ -156,7 +157,7 @@ public class InitializerService : IHostedService
                 System.Text.Json.JsonSerializer.Serialize(adjustedHalls),
                 new DistributedCacheEntryOptions
                 {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(DaysToExpire)
                 },
                 cancellationToken
             );
@@ -178,7 +179,7 @@ public class InitializerService : IHostedService
                 System.Text.Json.JsonSerializer.Serialize(adjustedSeats),
                 new DistributedCacheEntryOptions
                 {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(DaysToExpire)
                 },
                 cancellationToken
             );
@@ -201,7 +202,7 @@ public class InitializerService : IHostedService
                 System.Text.Json.JsonSerializer.Serialize(adjustedShowTimes),
                 new DistributedCacheEntryOptions
                 {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(DaysToExpire)
                 },
                 cancellationToken
             );
@@ -228,7 +229,7 @@ public class InitializerService : IHostedService
                 System.Text.Json.JsonSerializer.Serialize(adjustedOrders),
                 new DistributedCacheEntryOptions
                 {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(DaysToExpire)
                 },
                 cancellationToken
             );
@@ -250,7 +251,7 @@ public class InitializerService : IHostedService
                 System.Text.Json.JsonSerializer.Serialize(adjustedTickets),
                 new DistributedCacheEntryOptions
                 {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(DaysToExpire)
                 },
                 cancellationToken
             );
