@@ -47,6 +47,18 @@ namespace KinoDev.DomainService.Infrastructure.Extensions
                 services.AddHostedService<MessagingSubscriber>();
             }
 
+            var isInMemoryDbEnabled = configuration.GetValue<bool>("InMemoryDb:Enabled");
+            if (isInMemoryDbEnabled)
+            {
+                services.AddHostedService<InitializerService>();
+            }
+
+            var redisConn = configuration.GetValue<string>("Redis:ConnectionString");
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = redisConn;
+            });
+
             return services;
         }
     }
