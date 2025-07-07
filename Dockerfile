@@ -37,11 +37,6 @@ COPY . .
 WORKDIR "/src/src/KinoDev.DomainService.WebApi"
 RUN dotnet build "KinoDev.DomainService.WebApi.csproj" -c Release -o /app/build
 
-# Add a stage for running tests
-# FROM build AS testrunner
-# WORKDIR /src/tests/FoodExpress.Api.UnitTests
-# RUN dotnet test "FoodExpress.Api.UnitTests.csproj" --logger:trx
-
 FROM build AS publish
 RUN dotnet publish "KinoDev.DomainService.WebApi.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
