@@ -2,6 +2,7 @@
 using KinoDev.DomainService.Domain.DomainsModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace KinoDev.DomainService.Domain.Context
 {
@@ -34,6 +35,26 @@ namespace KinoDev.DomainService.Domain.Context
             OnModelCreating(modelBuilder.Entity<Movie>());
 
             base.OnModelCreating(modelBuilder);
+
+            if (Database.IsInMemory())
+            {
+                var dateTimeConverter = new ValueConverter<DateTime, DateTime>(
+                    v => v, // Don't change the input value
+                    v => DateTime.SpecifyKind(v, DateTimeKind.Unspecified)); // Force Unspecified kind
+
+                foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+                {
+                    var dateTimeProperties = entityType.ClrType.GetProperties()
+                        .Where(p => p.PropertyType == typeof(DateTime) || p.PropertyType == typeof(DateTime?));
+
+                    foreach (var property in dateTimeProperties)
+                    {
+                        modelBuilder.Entity(entityType.Name)
+                            .Property(property.Name)
+                            .HasConversion(dateTimeConverter);
+                    }
+                }
+            }
         }
 
         private void OnModelCreating(EntityTypeBuilder<Hall> builder)
