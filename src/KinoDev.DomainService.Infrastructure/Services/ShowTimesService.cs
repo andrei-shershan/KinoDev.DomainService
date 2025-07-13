@@ -79,6 +79,7 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 .Include(x => x.Hall)
                 .Include(x => x.Movie)
                 .Where(x => x.Time.Date >= startDate && x.Time.Date <= endDate)
+                .OrderBy(x => x.Time)
                 .ToListAsync();
 
             if (dbShowTimes.IsNullOrEmptyCollection())
