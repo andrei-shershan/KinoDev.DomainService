@@ -11,10 +11,14 @@ namespace KinoDev.DomainService.Infrastructure.Services
     {
         private readonly KinoDevDbContext _dbContext;
 
-        public MovieService(KinoDevDbContext dbContext)
+        private readonly ICacheRefreshService _cacheRefreshService;
+
+        public MovieService(KinoDevDbContext dbContext, 
+            ICacheRefreshService cacheRefreshService)
         {
             _dbContext = dbContext;
-        }
+            _cacheRefreshService = cacheRefreshService;
+        }   
 
         public async Task<MovieDto> CreateAsync(MovieDto movieDto)
         {
@@ -22,6 +26,8 @@ namespace KinoDev.DomainService.Infrastructure.Services
 
             await _dbContext.Movies.AddAsync(movie);
             await _dbContext.SaveChangesAsync();
+
+            await _cacheRefreshService.RefreshMoviesAsync();
 
             return movie.ToDto();
         }

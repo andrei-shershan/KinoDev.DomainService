@@ -17,11 +17,15 @@ namespace KinoDev.DomainService.Infrastructure.Services
 
         private readonly ILogger<HallsService> _logger;
 
+        private readonly ICacheRefreshService _cacheRefreshService;
+
         public HallsService(
             KinoDevDbContext context,
             ILogger<HallsService> logger,
-            IOptions<InMemoryDbSettings> inMemoryDbSettings) : base(inMemoryDbSettings)
+            IOptions<InMemoryDbSettings> inMemoryDbSettings,
+            ICacheRefreshService cacheRefreshService) : base(inMemoryDbSettings)
         {
+            _cacheRefreshService = cacheRefreshService ?? throw new ArgumentNullException(nameof(cacheRefreshService));
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -58,6 +62,8 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 await _context.SaveChangesAsync();
 
                 await CommitTransactionAsync(transaction);
+
+                await _cacheRefreshService.RefreshHallsAsync();
 
                 return GetHallSummary(hall, seats);
             }

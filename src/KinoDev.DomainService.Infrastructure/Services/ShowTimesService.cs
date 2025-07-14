@@ -18,13 +18,17 @@ namespace KinoDev.DomainService.Infrastructure.Services
 
         private ILogger<ShowTimesService> _logger;
 
+        private readonly ICacheRefreshService _cacheRefreshService;
+
         public ShowTimesService(
             KinoDevDbContext dbContext,
             ILogger<ShowTimesService> logger,
-            IOptions<InMemoryDbSettings> inMemoryDbSettings) : base(inMemoryDbSettings)
+            IOptions<InMemoryDbSettings> inMemoryDbSettings,
+            ICacheRefreshService cacheRefreshService) : base(inMemoryDbSettings)
         {
             _dbContext = dbContext;
             _logger = logger;
+            _cacheRefreshService = cacheRefreshService;
         }
 
         public async Task<bool> CreateAsync(CreateShowTimeRequest request)
@@ -58,6 +62,9 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 await _dbContext.SaveChangesAsync();
 
                 await CommitTransactionAsync(transaction);
+
+                await _cacheRefreshService.RefreshShowTimesAsync();
+                
                 return true;
             }
             catch (Exception ex)

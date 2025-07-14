@@ -50,7 +50,12 @@ namespace KinoDev.DomainService.Infrastructure.Extensions
             var isInMemoryDbEnabled = configuration.GetValue<bool>("InMemoryDb:Enabled");
             if (isInMemoryDbEnabled)
             {
+                services.AddTransient<ICacheRefreshService, CacheRefreshService>();
                 services.AddHostedService<InitializerService>();
+            }
+            else
+            {
+                services.AddTransient<ICacheRefreshService, CacheRefreshEmptyService>();
             }
 
             var redisConn = configuration.GetValue<string>("Redis:ConnectionString");
