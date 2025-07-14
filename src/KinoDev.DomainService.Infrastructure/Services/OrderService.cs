@@ -20,13 +20,17 @@ namespace KinoDev.DomainService.Infrastructure.Services
 
         private readonly ILogger<OrderService> _logger;
 
+        private readonly ICacheRefreshService _cacheRefreshService;
+
         public OrderService(
             KinoDevDbContext dbContext,
             ILogger<OrderService> logger,
-            IOptions<InMemoryDbSettings> inMemoryDbSettings) : base(inMemoryDbSettings)
+            IOptions<InMemoryDbSettings> inMemoryDbSettings,
+            ICacheRefreshService cacheRefreshService) : base(inMemoryDbSettings)
         {
             _dbContext = dbContext;
             _logger = logger;
+            _cacheRefreshService = cacheRefreshService;
         }
 
         public async Task<OrderDto> CompleteOrderAsync(Guid id)
@@ -49,6 +53,9 @@ namespace KinoDev.DomainService.Infrastructure.Services
             }
 
             await _dbContext.SaveChangesAsync();
+
+            await _cacheRefreshService.RefreshOrdersAsync();
+
             return dbOrder.ToDto();
         }
 
@@ -121,6 +128,9 @@ namespace KinoDev.DomainService.Infrastructure.Services
 
                 await CommitTransactionAsync(transaction);
 
+                await _cacheRefreshService.RefreshOrdersAsync();
+                await _cacheRefreshService.RefreshTicketsAsync();
+
                 return GetOrderSummary(dbAddOrderResult.Entity, dbShowTime, dbTickets);
             }
             catch (Exception ex)
@@ -151,6 +161,10 @@ namespace KinoDev.DomainService.Infrastructure.Services
                 _dbContext.Orders.Remove(order);
 
                 await _dbContext.SaveChangesAsync();
+
+                await _cacheRefreshService.RefreshOrdersAsync();
+                await _cacheRefreshService.RefreshTicketsAsync();
+
                 await CommitTransactionAsync(transaction);
 
                 return true;
@@ -296,6 +310,9 @@ namespace KinoDev.DomainService.Infrastructure.Services
             }
 
             await _dbContext.SaveChangesAsync();
+
+            await _cacheRefreshService.RefreshOrdersAsync();
+
             return true;
         }
 
@@ -317,6 +334,8 @@ namespace KinoDev.DomainService.Infrastructure.Services
             }
 
             await _dbContext.SaveChangesAsync();
+
+            await _cacheRefreshService.RefreshOrdersAsync();
 
             _logger.LogInformation($"File URL for order {id} set to {fileUrl}.");
 
